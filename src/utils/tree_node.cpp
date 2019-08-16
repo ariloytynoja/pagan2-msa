@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include "utils/tree_node.h"
+#include "utils/text_utils.h"
 
 using namespace std;
 using namespace ppa;
@@ -53,6 +54,8 @@ int Tree_node::count = 1;
 
 string Tree_node::get_rooted_tree(std::string t)
 {
+    t = Text_utils::remove_last_whitespaces(t);
+
     mpTree = "";
     max_length = 0.0;
     maxSpan = 0.0;
