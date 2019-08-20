@@ -30,6 +30,7 @@ namespace ppa {
 class Evol_model
 {
     std::string full_char_alphabet;
+
 public:
 //    Evol_model() {}
     Evol_model(int data_t,float dist);
@@ -42,8 +43,10 @@ public:
     Db_matrix *logCharPi;
     Db_matrix *logCharPr;
     Int_matrix *parsimony_table;
+    Int_matrix *mostcommon_table;
 
     int data_type;
+    int char_as;
 
     float distance;
 
@@ -85,10 +88,16 @@ public:
     float score(int i,int j) { return charPr->g(i,j); }
 
     int parsimony_state(int i,int j) { return parsimony_table->g(i,j); }
+    int mostcommon_state(int i,int j) { return mostcommon_table->g(i,j); }
 
     int get_data_type() { return data_type; }
 
     std::string get_full_alphabet() { return full_char_alphabet; }
+
+    enum Ambiguity { wildcard, mostcommon };
+    Ambiguity ambiguity_type;
+
+    bool is_ambiguity_character(int i) { return i>=char_as; }
 
 };
 }

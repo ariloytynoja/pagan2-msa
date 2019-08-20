@@ -164,6 +164,7 @@ void Node::align_sequences_this_node(Model_factory *mf, bool is_reads_sequence)
         Log_output::write_out(ss.str(),"time");
 
         this->add_ancestral_sequence( va.get_simple_sequence() );
+        this->fix_ambiguous_states(&model);
 
         if(is_reads_sequence)
         {
@@ -386,6 +387,7 @@ void Node::align_sequences_this_node_threaded(Model_factory *mf)
              left_child->get_distance_to_parent(),right_child->get_distance_to_parent());
 
     this->add_ancestral_sequence( va.get_simple_sequence() );
+    this->fix_ambiguous_states(&model);
 
 }
 
@@ -499,6 +501,7 @@ void Node::align_sequences_this_node_openmp(Model_factory *mf)
              left_child->get_distance_to_parent(),right_child->get_distance_to_parent());
 
     this->add_ancestral_sequence( va.get_simple_sequence() );
+    this->fix_ambiguous_states(&model);
 }
 
 /*******************************************************************************/
@@ -1604,3 +1607,83 @@ void Node::prune_up()
     }
 }
 
+void Node::fix_ambiguous_states(ppa::Evol_model *model)
+{
+    if( model->ambiguity_type==Evol_model::mostcommon )
+    {
+        for(int j=1;j<this->get_sequence()->sites_length()-1;j++)
+        {
+            Site_children *offspring = this->get_sequence()->get_site_at(j)->get_children();
+            int lj = offspring->left_index;
+            int rj = offspring->right_index;
+
+            set<int> lstates;
+            set<int> rstates;
+
+            if(lj>=0)
+                left_child->get_ambiguous_states(lj,&lstates);
+            if(rj>=0)
+                right_child->get_ambiguous_states(rj,&rstates);
+
+            set<int> l;
+            set_intersection(lstates.begin(),lstates.end(),rstates.begin(),rstates.end(),
+                              std::inserter(l,l.begin()));
+
+            if( l.size()==1 && rstates.size()+lstates.size()>2 )
+                this->set_ambiguous_state( j, *l.begin() );
+        }
+    }
+}
+
+void Node::get_ambiguous_states(int pos, set<int>* states)
+{
+    if(! this->get_sequence()->get_site_at(pos)->is_ambiguous())
+    {
+        states->insert(this->get_sequence()->get_site_at(pos)->get_state());
+        return;
+    }
+
+    Site_children *offspring = this->get_sequence()->get_site_at(pos)->get_children();
+    int lj = offspring->left_index;
+    int rj = offspring->right_index;
+
+    if(lj>=0)
+    {
+        left_child->get_ambiguous_states(lj,states);
+    }
+    if(rj>=0)
+    {
+        right_child->get_ambiguous_states(rj,states);
+    }
+}
+
+bool Node::set_ambiguous_state(int pos, int state)
+{
+    if(! this->get_sequence()->get_site_at(pos)->is_ambiguous() )
+    {
+        if( this->get_sequence()->get_site_at(pos)->get_state() == state)
+            return true;
+        else
+            return false;
+    }
+
+    Site_children *offspring = this->get_sequence()->get_site_at(pos)->get_children();
+    int lj = offspring->left_index;
+    int rj = offspring->right_index;
+
+    bool cont = true;
+
+    if(lj>=0)
+    {
+        if (left_child->set_ambiguous_state(lj, state) )
+        {
+            this->get_sequence()->get_site_at(pos)->set_state(state);
+            cont = false;
+        }
+    }
+    if(rj>=0 && cont)
+    {
+        if (right_child->set_ambiguous_state(rj, state) )
+            this->get_sequence()->get_site_at(pos)->set_state(state);
+    }
+}

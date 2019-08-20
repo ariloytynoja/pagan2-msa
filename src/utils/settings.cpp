@@ -259,7 +259,7 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
         ("test-every-terminal-node","test every terminal node for each query")
         ("no-preselection","do not preselect targets with Exonerate")
         ("score-as-dna", "score protein/ORFs as DNA (translated placement)")
-
+        ("mostcommon", "use mostcommon for ambiguity")
         ("full-probability", "compute full probability")
         ("output-graph","output ancestral graph")
         ("sample-path", "sample the alignment path from posterior probabilities")

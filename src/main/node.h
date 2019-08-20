@@ -2191,6 +2191,10 @@ public:
 
     std::string get_sequence_string(bool with_gaps=false);
 
+    void fix_ambiguous_states(Evol_model *model);
+    void get_ambiguous_states(int pos, set<int>* states);
+    bool set_ambiguous_state(int pos, int state);
+
     void check_valid_graph() const;
 
 };

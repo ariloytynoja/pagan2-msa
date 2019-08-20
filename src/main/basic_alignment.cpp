@@ -93,6 +93,9 @@ void Basic_alignment::create_ancestral_sequence(Sequence *sequence, vector<Path_
             int lc = left->get_site_at(l_pos)->get_state();
             site.set_state( lc );
 
+            if(left->get_site_at(l_pos)->is_ambiguous())
+                site.is_ambiguous(true);
+
             if(is_reads_sequence && (Settings_handle::st.is("use-consensus") || Settings_handle::st.is("build-contigs")  ))
                 this->compute_site_consensus(&site,left,l_pos,right,-1,is_dna);
 
@@ -115,6 +118,9 @@ void Basic_alignment::create_ancestral_sequence(Sequence *sequence, vector<Path_
             int rc = right->get_site_at(r_pos)->get_state();
             site.set_state( rc );
 
+            if(right->get_site_at(r_pos)->is_ambiguous())
+                site.is_ambiguous(true);
+
             if(is_reads_sequence && (Settings_handle::st.is("use-consensus") || Settings_handle::st.is("build-contigs") ))
                 this->compute_site_consensus(&site,left,-1,right,r_pos, is_dna);
 
@@ -136,9 +142,18 @@ void Basic_alignment::create_ancestral_sequence(Sequence *sequence, vector<Path_
         {
             int lc = left->get_site_at(l_pos)->get_state();
             int rc = right->get_site_at(r_pos)->get_state();
-            site.set_state( model->parsimony_state(lc,rc) );
 
-            int sttmp = site.get_state();
+            if( model->ambiguity_type==Evol_model::mostcommon )
+                site.set_state( model->mostcommon_state(lc,rc) );
+            else
+                site.set_state( model->parsimony_state(lc,rc) );
+
+//            cout<<lc<<" "<<rc<<" "<<model->mostcommon_state(lc,rc)<<" "<<model->parsimony_state(lc,rc)<<" "<<site.get_state()<<" ("<<model->ambiguity_type<<")"<<endl;
+
+            if(lc!=rc || model->is_ambiguity_character(lc))
+                site.is_ambiguous(true);
+
+//            int sttmp = site.get_state();
             if(is_reads_sequence && (Settings_handle::st.is("use-consensus") || Settings_handle::st.is("build-contigs") ))
                 this->compute_site_consensus(&site,left,l_pos,right,r_pos, is_dna);
 //            cout<<"b "<<sttmp<<"; a "<<site.get_state()<<"\n";

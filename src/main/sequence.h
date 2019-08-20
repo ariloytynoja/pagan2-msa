@@ -242,6 +242,7 @@ struct Site
     float branch_distance_since_last_used;
 
     int sumA, sumC, sumG, sumT, sumAmino;
+    bool ambiguous = false;
 //    int sumAA[20];
 public:
     Site(vector<Edge> *e,int type=Site::real_site,int p_state=Site::terminal):index(-1),character_state(-1),character_symbol("0"),
@@ -295,6 +296,8 @@ public:
 //    void set_sumAA(int j,int i) { sumAA[j] = i; }
 //    void add_sumAA(int j,int i) { sumAA[j] += i; }
 
+    bool is_ambiguous() { return ambiguous; }
+    bool is_ambiguous(bool a) { ambiguous = a; }
     /**************************************/
 
     void set_empty_children()

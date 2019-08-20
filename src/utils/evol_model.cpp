@@ -28,16 +28,23 @@ Evol_model::Evol_model(int data_t,float dist)
 {
     data_type = data_t;
     full_char_alphabet = Model_factory::get_dna_full_char_alphabet();
+    char_as = Model_factory::get_dna_char_alphabet().length();
 
     if(data_type == Model_factory::protein)
+    {
         full_char_alphabet = Model_factory::get_protein_full_char_alphabet();
+        char_as = Model_factory::get_protein_char_alphabet().length();
+    }
 
     int char_fas = full_char_alphabet.length();
 
     distance = dist;
 
     if( ( data_type == Model_factory::dna && Settings_handle::st.is("codons") ) || data_type == Model_factory::codon)
+    {
         char_fas = Model_factory::get_codon_full_character_alphabet()->size();
+        char_as = 61;
+    }
 
     charPi = new Db_matrix(char_fas,"pi_char");
     charPr = new Db_matrix(char_fas,char_fas,"P_char");
@@ -48,6 +55,12 @@ Evol_model::Evol_model(int data_t,float dist)
     logCharPr->initialise(-HUGE_VAL);
 
     parsimony_table = new Int_matrix(char_fas,char_fas,"parsimony_char");
+    mostcommon_table = new Int_matrix(char_as,char_as,"mostcommon_char");
+
+    ambiguity_type = wildcard;
+
+    if( Settings_handle::st.is("mostcommon") )
+        ambiguity_type = mostcommon;
 
 }
 
@@ -60,6 +73,7 @@ Evol_model::~Evol_model()
     delete logCharPr;
 
     delete parsimony_table;
+    delete mostcommon_table;
 }
 
 Evol_model& Evol_model::operator=(const Evol_model& org)
@@ -75,6 +89,7 @@ Evol_model& Evol_model::operator=(const Evol_model& org)
     delete logCharPr;
 
     delete parsimony_table;
+    delete mostcommon_table;
 
     data_type = org.data_type;
     distance = org.distance;
@@ -125,6 +140,13 @@ Evol_model& Evol_model::operator=(const Evol_model& org)
             parsimony_table->s(org.parsimony_table->g(i,j),i,j);
         }
     }
+
+    mostcommon_table = new Int_matrix(char_as,char_as,"mostcommon_char");
+
+    for(int i = 0; i < char_as; i++)
+        for(int j = 0; j < char_as; j++)
+            mostcommon_table->s(org.mostcommon_table->g(i,j),i,j);
+
 
     return *this;
 }

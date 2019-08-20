@@ -42,6 +42,7 @@ Model_factory::Model_factory(int s)
 
     parsimony_table=0;
     child_parsimony_table=0;
+    mostcommon_table = 0;
     char_ambiguity=0;
 
 //    prev_distance = -1;
@@ -85,6 +86,9 @@ Model_factory::~Model_factory()
 
     if(child_parsimony_table!=0)
         delete child_parsimony_table;
+
+    if(mostcommon_table!=0)
+        delete mostcommon_table;
 
     if(char_ambiguity!=0)
         delete char_ambiguity;
@@ -202,6 +206,7 @@ void Model_factory::define_dna_alphabet()
     pos2bin->s(n,14);
 
     parsimony_table = new Int_matrix(char_fas,char_fas,"parsimony_char");
+    mostcommon_table = new Int_matrix(char_fas,char_fas,"mostcommon_char"); // not used for DNA
 
     for(int i=0;i<char_fas;i++)
     {
@@ -209,9 +214,15 @@ void Model_factory::define_dna_alphabet()
         {
             int v = (pos2bin->g(i)&pos2bin->g(j));
             if(v>0)
+            {
                 parsimony_table->s(bin2pos->g(v),i,j);
+                mostcommon_table->s(bin2pos->g(v),i,j);
+            }
             else
+            {
                 parsimony_table->s(bin2pos->g((pos2bin->g(i)|pos2bin->g(j))),i,j);
+                mostcommon_table->s(bin2pos->g((pos2bin->g(i)|pos2bin->g(j))),i,j);
+            }
         }
     }
 
@@ -237,6 +248,7 @@ void Model_factory::define_dna_alphabet()
             }
         }
     }
+
 
 
     delete bin2pos;
@@ -606,6 +618,19 @@ void Model_factory::define_protein_alphabet()
         }
     }
 
+    mostcommon_table = new Int_matrix(char_as,char_as,"mostcommon_char");
+    for(int i=0;i<char_as;i++)
+    {
+        for(int j=0;j<char_as;j++)
+        {
+            mostcommon_table->s(j,i,j);
+            if(tmp_pi[i]>tmp_pi[j])
+                mostcommon_table->s(i,i,j);
+        }
+    }
+
+//    this->print_int_matrix(mostcommon_table);
+
 //    this->print_int_matrix(parsimony_table);
 
 //    this->print_int_matrix(child_parsimony_table);
@@ -727,12 +752,14 @@ void Model_factory::define_protein_alphabet_groups()
     };
 
     parsimony_table = new Int_matrix(char_fas,char_fas,"parsimony_char");
+    mostcommon_table = new Int_matrix(char_fas,char_fas,"mostcommon_char"); // not used for groups
 
     for(int i=0;i<char_fas;i++)
     {
         for(int j=0;j<char_fas;j++)
         {
             parsimony_table->s(table[i*char_fas+j],i,j);
+            mostcommon_table->s(table[i*char_fas+j],i,j);
         }
     }
 
@@ -774,6 +801,7 @@ void Model_factory::define_protein_alphabet_groups()
         }
     }
 
+    mostcommon_table = new Int_matrix(char_as,char_as,"mostcommon_char");
 
     if(Settings::noise>5)
     {
@@ -1173,7 +1201,20 @@ void Model_factory::define_codon_alphabet()
         }
     }
 
+    if(mostcommon_table != 0)
+        delete mostcommon_table;
 
+
+    mostcommon_table = new Int_matrix(char_as,char_as,"mostcommon_char");
+    for(int i=0;i<char_as;i++)
+    {
+        for(int j=0;j<char_as;j++)
+        {
+            mostcommon_table->s(j,i,j);
+            if(tmp_pi[i]>tmp_pi[j])
+                mostcommon_table->s(i,i,j);
+        }
+    }
 
     if(Settings::noise>5)
     {
@@ -1891,6 +1932,8 @@ Evol_model Model_factory::alignment_model(double distance)
 
         for(int j=0;j<char_as;j++)
         {
+            model.mostcommon_table->s(mostcommon_table->g(i,j),i,j);
+
             float sp = tmr[i*char_as+j];
             if( Settings_handle::st.is("no-score-scaling") )
             {

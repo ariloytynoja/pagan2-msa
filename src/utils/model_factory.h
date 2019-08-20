@@ -88,6 +88,7 @@ class Model_factory
 
     Int_matrix *parsimony_table;
     Int_matrix *child_parsimony_table;
+    Int_matrix *mostcommon_table;
 
     Db_matrix * charU;
     Db_matrix * charV;
@@ -244,8 +245,9 @@ public:
 
     std::string get_character_in_full_alphabet_at(int i) { return full_character_alphabet->at(i); }
 
-    int parsimony_state(int parent_state,int child_state) { return parsimony_table->g(parent_state,child_state); }
+    int parsimony_state(int left_state,int right_state) { return parsimony_table->g(left_state,right_state); }
     int get_child_parsimony_state(int parent_state,int child_state) { return child_parsimony_table->g(parent_state,child_state);}
+    int mostcommon_state(int left_state,int right_state) { return mostcommon_table->g(left_state,right_state); }
 };
 
 }
