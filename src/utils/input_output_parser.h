@@ -32,6 +32,7 @@ namespace ppa{
 
 class Input_output_parser
 {
+    bool warn_tree_change = false;
 public:
     Input_output_parser();
 

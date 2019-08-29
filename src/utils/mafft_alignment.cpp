@@ -84,6 +84,9 @@ bool Mafft_alignment::test_executable()
     mafftpath = "";
     status = system("mafft -h >/dev/null 2>/dev/null");
 
+    if(Settings_handle::st.is("docker"))
+        return true;
+
     return WEXITSTATUS(status) == 1;
 
     #endif

@@ -107,7 +107,7 @@ void Reads_aligner::align(Node *root, Model_factory *mf, int count)
 
 #ifdef NCBI_TOOLKIT
 
-    else if(Settings_handle::st.is("ncbi"))
+    else if(! Settings_handle::st.is("no-ncbi"))
     {
         mol_type mol;
         if(is_dna){

@@ -79,6 +79,7 @@ namespace ppa
 class Newick_reader
 {
     int node_index;
+    bool has_warned = false;
 public:
     Newick_reader();
     ~Newick_reader() {}
@@ -95,6 +96,7 @@ public:
       string nodeid;
     };
 
+    bool removed_multifurcation() { return has_warned; }
     static Element get_element(const string & elt) throw (Exception);
 };
 

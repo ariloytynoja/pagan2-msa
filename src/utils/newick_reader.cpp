@@ -157,9 +157,45 @@ Node * Newick_reader::parenthesis_to_node(const string & description) throw (Exc
     }
     else if(elements.size()!=2)
     {
-        // Alignment requires a binary guide tree!
-//        throw Exception("Newick_reader::parenthesis_to_node. Not a binary tree: " + elt.content + ":" + elt.length);
-        throw Exception("The guide tree should be a rooted binary tree. Exiting.\n");
+        string t("(");
+        int i=0;
+        for(;i<elements.size()-2;i++)
+            t+=elements[i]+",";
+        t+=elements[i]+")";
+
+        //This is a node:
+        try
+        {
+            Node * child_0 = parenthesis_to_node(t);
+            node->add_left_child(child_0);
+
+            Node * child_1 = parenthesis_to_node(elements[elements.size()-1]);
+            node->add_right_child(child_1);
+
+//            node->set_name(description);
+            if(elt.nodeid!="")
+            {
+                node->set_name(elt.nodeid);
+            }
+            else
+            {
+                stringstream ss("");
+                ss<<"node"<<node_index;
+                node->set_name(ss.str());
+            }
+            node_index++;
+            node->is_leaf(false);
+        }
+        catch(exception e)
+        {
+            throw e;
+        }
+
+        if(! this->has_warned)
+        {
+            Log_output::write_out("Warning: removing multifurcation\n",1);
+            this->has_warned = true;
+        }
     }
 
     else
@@ -256,9 +292,9 @@ Node * Newick_reader::parenthesis_to_tree(const string & description) throw (Exc
 
     if(elements.size()!=2)
     {
-        // Alignment requires a binary guide tree!
+        // Alignment requires a binary guidetree!
 //        throw Exception("Newick_reader::parenthesis_to_tree(). Not a binary tree: " + content);
-        throw Exception("The guide tree should be a rooted binary tree. Exiting.\n");
+        throw Exception("The guidetree should be a rooted binary tree. Exiting.\n");
     }
 
     else

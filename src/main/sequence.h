@@ -297,7 +297,7 @@ public:
 //    void add_sumAA(int j,int i) { sumAA[j] += i; }
 
     bool is_ambiguous() { return ambiguous; }
-    bool is_ambiguous(bool a) { ambiguous = a; }
+    void is_ambiguous(bool a) { ambiguous = a; }
     /**************************************/
 
     void set_empty_children()

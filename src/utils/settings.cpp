@@ -34,8 +34,8 @@ Settings::Settings(){}
 
 int Settings::read_command_line_arguments(int argc, char *argv[])
 {
-    version = 1.52;
-    date = "16 August, 2019";
+    version = 1.53;
+    date = "29 August, 2019";
 
     boost::program_options::options_description minimal("Minimal progressive alignment options",100);
     minimal.add_options()
@@ -65,15 +65,15 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
         ("config-log-file",po::value<string>(),"log file for given arguments")
         ("threads",po::value<int>(),"number of threads")
 #ifdef NCBI_TOOLKIT
-        ("ncbi", "use NCBI_toolkit")
+        ("no-ncbi", "do not use NCBI_toolkit")
 #endif
     ;
 
     boost::program_options::options_description generic2("More generic options",100);
     generic2.add_options()
         ("xml-nhx","output XML alignment with NHX tree")
-        ("raxml-tree","use RAxML for guide tree computation [default FastTree]")
-        ("bppdist-tree","use BppDist for guide tree computation [default FastTree]")
+        ("raxml-tree","use RAxML for guidetree computation [default FastTree]")
+        ("bppdist-tree","use BppDist for guidetree computation [default FastTree]")
         ("no-bppancestors","no BppAncestors (slow for large alignments)")
         ("noise", po::value<int>(), "output noise level")
         ("log-output-file",po::value<string>(),"output to file instead of stdout")
@@ -279,6 +279,7 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
         ("assembly","placement at subroot only (for assembly)")
         ("boost","multi-threading with boost")
         ("quick","quick reconstruction")
+        ("docker","believe that binaries are there")
     ;
 
     boost::program_options::options_description broken("Broken options",100);

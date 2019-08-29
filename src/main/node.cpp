@@ -1686,4 +1686,5 @@ bool Node::set_ambiguous_state(int pos, int state)
         if (right_child->set_ambiguous_state(rj, state) )
             this->get_sequence()->get_site_at(pos)->set_state(state);
     }
+    return false;
 }

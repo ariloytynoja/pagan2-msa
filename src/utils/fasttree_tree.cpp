@@ -78,6 +78,7 @@ bool FastTree_tree::test_executable()
     progpath = epath;
     epath = epath+"fasttree >/dev/null 2>/dev/null";
     int status = system(epath.c_str());
+
     if(WEXITSTATUS(status) == 0)
         return true;
 
@@ -88,6 +89,9 @@ bool FastTree_tree::test_executable()
     status = system("fasttree >/dev/null 2>/dev/null");
 
     if(WEXITSTATUS(status) == 1 && strcmp(hostname, "wasabi2")==0)
+        return true;
+
+    if(Settings_handle::st.is("docker"))
         return true;
 
     return WEXITSTATUS(status) == 0;
@@ -110,10 +114,11 @@ string FastTree_tree::infer_phylogeny(std::vector<Fasta_entry> *sequences,bool i
         f_name <<tmp_dir<<"d"<<r<<".fas";
         ifstream f_file(f_name.str().c_str());
 
+        /*
         t_name <<tmp_dir<<"d"<<r<<".tre";
         ifstream t_file(t_name.str().c_str());
-
-        if(!f_file && !t_file)
+        */
+        if(!f_file /*&& !t_file*/)
         {
             break;
         }
@@ -175,10 +180,11 @@ void FastTree_tree::delete_files(int r)
     if ( remove( f_name.str().c_str() ) != 0 )
         Log_output::write_out( "Error deleting file", 1);
 
+    /*
     stringstream t_name;
     t_name <<tmp_dir<<"d"<<r<<".tre";
 
     if ( remove( t_name.str().c_str() ) != 0 )
         Log_output::write_out( "Error deleting file", 1);
-
+    */
 }

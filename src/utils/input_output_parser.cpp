@@ -158,6 +158,7 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
         string treefile =  Settings_handle::st.get("treefile").as<string>();
         Log_output::write_out("Tree file: "+treefile+"\n",1);
 
+        bool warn_rooting = false;
         Newick_reader nr;
         string tree;
         try
@@ -165,7 +166,7 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
             tree = nr.read_tree(treefile);
         }
         catch (ppa::IOException& e) {
-            Log_output::write_out("Error reading the guide tree file '"+treefile+"'.\nExiting.\n\n",0);
+            Log_output::write_out("Error reading the guidetree file '"+treefile+"'.\nExiting.\n\n",0);
             exit(1);
         }
         try {
@@ -173,15 +174,35 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
         }
         catch(exception e)
         {
-            Log_output::write_out("The guide tree should be a rooted binary tree. Trying mid-point rooting.\n\n",0);
-
+            warn_rooting = true;
             Tree_node tn;
             tree = tn.get_rooted_tree(tree);
             root = nr.parenthesis_to_tree(tree);
         }
 
-        root = nr.parenthesis_to_tree(tree);
+        if(nr.removed_multifurcation() || warn_rooting)
+        {
+
+            if(nr.removed_multifurcation() && warn_rooting)
+                Log_output::write_out("The guidetree should be rooted and binary. Mid-point rooted and arbitrarily resolved.\n\n",0);
+            else if(nr.removed_multifurcation())
+                Log_output::write_out("The guidetree should be binary. Arbitrarily resolved.\n\n",0);
+            else if(warn_rooting)
+                Log_output::write_out("The guidetree should be rooted. Mid-point rooted.\n\n",0);
+
+            warn_tree_change = true;
+
+            string outfile =  "outfile";
+            if(Settings_handle::st.is("outfile"))
+                outfile =  Settings_handle::st.get("outfile").as<string>();
+            outfile += ".tre";
+
+            ofstream output( outfile.c_str(), (ios::out));
+            output<<root->print_tree()<<endl;
+            output.close();
+        }
     }
+
     else if(Settings_handle::st.is("ref-treefile"))
     {
         string treefile =  Settings_handle::st.get("ref-treefile").as<string>();
@@ -203,7 +224,7 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
         }
         catch(exception e)
         {
-            Log_output::write_out("The reference guide tree should be a rooted binary tree. \nExiting.\n\n",0);
+            Log_output::write_out("The reference guidetree should be a rooted binary tree. \nExiting.\n\n",0);
             exit(1);
         }
     }
@@ -559,7 +580,8 @@ void Input_output_parser::output_aligned_sequences(Fasta_reader *fr,std::vector<
 
         if(!Settings_handle::st.is("treefile") && !Settings_handle::st.is("ref-treefile"))
             Log_output::write_out("Guidetree file: "+outfile+".tre\n",0);
-
+        else if(this->warn_tree_change)
+            Log_output::write_out("Modified guidetree file: "+outfile+".tre\n",0);
 
         bool do_ancestors = Settings_handle::st.is("events") || Settings_handle::st.is("output-ancestors") || Settings_handle::st.is("ancestors")
                 || Settings_handle::st.is("xml") || Settings_handle::st.is("xml-nhx");
@@ -848,7 +870,7 @@ void Input_output_parser::output_aligned_sequences(Fasta_reader *fr,std::vector<
              Settings_handle::st.is("truncate-branches") ||
               Settings_handle::st.is("fixed-branches") )
         {
-            Log_output::write_out("Modified guide tree: " +root->print_tree()+"\n",2);
+            Log_output::write_out("Modified guidetree: " +root->print_tree()+"\n",2);
         }
 
 

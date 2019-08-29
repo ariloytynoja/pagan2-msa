@@ -75,7 +75,7 @@ float Viterbi_alignment::define_tunnel(Sequence *left_sequence,Sequence *right_s
         fa.find_hmmer_anchors(&s1,&s2,&hits);
     }
 #ifdef NCBI_TOOLKIT
-    else if(Settings_handle::st.is("ncbi"))
+    else if(! Settings_handle::st.is("no-ncbi"))
     {
         BankBlaster blaster;
         Blast_options opt;
@@ -145,7 +145,7 @@ float Viterbi_alignment::define_tunnel(Sequence *left_sequence,Sequence *right_s
     }
 
 #ifdef NCBI_TOOLKIT
-    if(Settings_handle::st.is("ncbi"))
+    if(! Settings_handle::st.is("no-ncbi"))
     {
 
         int overlap_total = Settings_handle::st.get("ncbi-threshold-overlap-total").as<int>();
