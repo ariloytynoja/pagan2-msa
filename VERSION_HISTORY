@@ -1,0 +1,202 @@
+v.1.53
+Now resolves (arbitrarily) multifurcating nodes. NCBI-anchoring by default.
+
+
+v.1.52
+Another (not very good) way to infer ancestral sequences.
+
+
+v.1.51
+First release of PAGAN2. Now using built-in BLAST library (instead of Exonerate) 
+and doing efficient alignment achoring that massively reduces the memory usage. 
+Can now align closely related sequences that are up to megabases long on a regular
+laptop computer.
+
+
+v.0.61
+Fixed a serious bug in query placement of indeopendent sequences: previously
+substrings (insertions) may have been left out of the resulting alignment.
+Also fixed the branch length computtaion for the new added sequences.
+PAGAN code is now hosted at github: changed the update check to reflect that.
+
+
+v.0.60
+Using now explicit data types for Exonerate. Previously DNA sequences with
+lots of ambiguous characters could be handled as proteins and search failed.
+
+
+v.0.59
+Fixing an issue with multiple placement of the same query. Adding a new option
+"--output-discarded-queries" for one-by-one placement. Enabling placement to newly
+added taxa now also for translated data. Speedup for Exonerate search.
+
+
+v.0.58
+Adding ancestral sequence reconstruction for codon data when "--translate" is used.
+A backup system for cases where BppAncestors fails.
+
+
+v.0.57
+Faster reference build (mainly for aa/codons). Less verbose output. Exonerate hits
+trimmed to avoid overlapping hits.
+
+
+v.0.56
+By mistake, outputted pruned files for every alignment. This now fixed.
+
+
+v.0.55
+Re-writing the program homepage. Compatible with that. Several changes in
+placement heuristics and tree extension
+
+
+v.0.54
+- cleaning up: many unused options removed
+- xml output with nhx tags
+- changed search order of external tools
+- now using BppAncestors for ancestor reconstruction
+
+
+v.0.53
+- TID tags now considered also for ORFs
+- fixing the double naming of ORFs
+- changed a bad default value for branch-skip-probability (not fixing the bug yet!)
+
+
+v.0.52
+- consistent naming of nucleotide and protein output of ORF alignments
+- improvements for alignment pruning
+- option to trim extended alignment
+
+
+v.0.51
+- functions for alignment pruning (to reduce large datasets)
+- anchoring coverage threshold for skipping the DP alignment altogether
+- find-best-orf and compare-reverse with placement
+
+v.0.50
+- improvements for pileup of 454 data
+- removing gaps from query sequences
+
+
+v.0.49
+Still in development:
+ - new option to create a distance tree using bpp_dist package.
+ - significant changes (and improvements) for pileup alignment of 454 reads.
+
+
+v.0.48
+- new option: --test-every-terminal-node
+
+
+v.0.47
+- compiles on Darwin and Cygwin
+
+
+v.0.46
+- first integration of MAFFT and RAxML
+
+
+v.0.45
+- reorganised code and fixed recently created bugs
+
+
+v.0.44
+- alignment anchoring with Exonerate or substring matching
+
+
+v.0.43
+- corrected multi-threading for standard multiple alignment
+
+
+v.0.42
+- first attempt for multi-threading for standard multiple alignment
+
+
+v.0.41
+- minor change in how the sequence name is read: no space in the end of line
+
+
+v.0.40
+- reverting earlier changes: now alignment model is again recomputed for each alignment
+
+
+v.0.39
+- selenocysteins are now converted to X
+- fixed bugs in the tree parser and use of branch lengths
+
+
+v.0.38
+- minor fixes on program options
+- documentation updated
+
+
+v.0.37
+- changes in phylogenetic placement using Exonerate: can run all at one go
+- renaming some command line arguments. Please check 'pagan --help'
+
+
+v.0.36
+- fixed the Makefile and issues giving compilation warnings
+
+
+v.0.35
+- new output system: less noise; allows outputting to a file
+- translated read alignment with ORF search
+- experiments with optimal reference search for read alignment without a reference
+
+
+v.0.34
+- can test also reverse-complement and keep better (for read alignment)
+- can do multiple rounds of read placement to find overlap
+
+
+v.0.33
+- query sequence matching equally well to several targets is placed to multiple locations
+- alternative scores for choosing the target: default self-normalised substitution score
+- the source code now at http://code.google.com/p/pagan-msa/
+
+
+v.0.32
+- option '--454' works also with FASTA-formatted sequences
+
+
+v.0.31
+- option for contig build to show ancestral sequence across gaps
+- option to use more appropriate default settings for PacBio pileup
+
+
+v.0.30
+- separation of consensus ancestor reconstruction and contig assembly
+- corrected read order in consensus alignment
+
+
+v.0.29
+- preliminary support for contig assembly
+- consensus ancestors for (DNA) read alignment
+
+
+v.0.28
+- preliminary support for read pileup using consensus ancestors
+
+
+v.0.27
+- integrated Exonerate to speed up the search for placement nodes
+
+
+v.0.26
+- repaired the broken ancestor reconstruction: now also for codon data.
+
+
+v.0.25
+- bug fix: reads can now also be aligned against tagged leaf nodes.
+- added option to search optimal placement among internal only or all nodes.
+
+
+v.0.24
+- added option '--version' to check for updates.
+
+
+v.0.23
+- this is the first version with the complete set of features described in the manuscript.
+

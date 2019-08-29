@@ -1813,7 +1813,7 @@ void Reads_aligner::find_targets_for_query(Node *root, Fasta_entry *read, Model_
     if(!er.test_executable())
     {
         has_exonerate = false;
-        if(warnings)
+        if(warnings && Settings_handle::st.is("no-ncbi"))
             Log_output::write_out("The executable for Exonerate not found! The fast placement search not used!",0);
     }
 
@@ -1997,7 +1997,7 @@ void Reads_aligner::find_nodes_for_query(Node *root, Fasta_entry *read, Model_fa
 {
     Exonerate_queries er;
     bool has_exonerate = true;
-    if(!er.test_executable())
+    if(!er.test_executable() && Settings_handle::st.is("no-ncbi"))
     {
         has_exonerate = false;
         Log_output::write_out("The executable for Exonerate not found! The fast placement search not used!",0);
@@ -2430,7 +2430,7 @@ void Reads_aligner::find_targets_for_queries(Node *root, vector<Fasta_entry> *re
 {
     Exonerate_queries er;
     bool has_exonerate = true;
-    if(!er.test_executable())
+    if(!er.test_executable() && Settings_handle::st.is("no-ncbi"))
     {
         has_exonerate = false;
         Log_output::write_out("The executable for Exonerate not found! The fast placement search not used!",0);
@@ -2614,7 +2614,7 @@ void Reads_aligner::find_nodes_for_queries(Node *root, vector<Fasta_entry> *read
 {
     Exonerate_queries er;
     bool has_exonerate = true;
-    if(!er.test_executable())
+    if(!er.test_executable() && Settings_handle::st.is("no-ncbi"))
     {
         has_exonerate = false;
         Log_output::write_out("The executable for Exonerate not found! The fast placement search not used!",0);
@@ -2976,7 +2976,7 @@ void Reads_aligner::preselect_target_sequences(Node *root, vector<Fasta_entry> *
     map<string, multimap<string,hit> > exonerate_hits;
 
     Exonerate_queries er;
-    if(!er.test_executable())
+    if(!er.test_executable() && Settings_handle::st.is("no-ncbi"))
         Log_output::write_out("The executable for Exonerate not found! Preselection not done!",0);
 
     else if(unaligned_sequences.size()>0)

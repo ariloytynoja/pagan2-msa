@@ -497,7 +497,7 @@ void Input_output_parser::match_sequences_and_tree(Fasta_reader *fr, std::vector
     if( ! ( Settings_handle::st.is("no-anchors") || Settings_handle::st.is("use-prefix-anchors") ) )
     {
         Exonerate_queries er;
-        if(!er.test_executable())
+        if(!er.test_executable() && Settings_handle::st.is("no-ncbi"))
             Log_output::write_out("The executable for Exonerate not found! Alignment anchoring not used!\n",0);
     }
 }

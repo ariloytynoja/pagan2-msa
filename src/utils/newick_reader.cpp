@@ -159,7 +159,7 @@ Node * Newick_reader::parenthesis_to_node(const string & description) throw (Exc
     {
         string t("(");
         int i=0;
-        for(;i<elements.size()-2;i++)
+        for(;i<int(elements.size())-2;i++)
             t+=elements[i]+",";
         t+=elements[i]+")";
 
