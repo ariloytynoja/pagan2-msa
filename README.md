@@ -5,7 +5,7 @@ PAGAN2 is a general-purpose method for the alignment of DNA, codon and amino-aci
 
 PAGAN2 uses the NCBI TOOLKIT and Boost libraries. The NCBI TOOLKIT does not compile with GCC compiler newer than 4.8 and also requires a rather old version of libc. The code compiles well on Ubuntu 14.04 and instructions are provided for building it with that using Docker.
 
-If you **use Linux** and just want to **use PAGAN2** (i.e. not see the source code and compile it from scratch), please go to the PAGAN homepage at http://wasabiapp.org/software/pagan and download the latest PAGAN2 package there. This package includes all helper applications needed e.g. for the guidetree inference. If you **do not use Linux**, you can try to use PAGAN2 inside the precompiled Docker container available at Docker hub. Please read the instructions for that below.
+If you use Linux and just want to **use PAGAN2** (i.e. not see the source code and compile it from scratch), please go to the PAGAN homepage at http://wasabiapp.org/software/pagan and download the latest PAGAN2 package there. This package includes all helper applications needed e.g. for the guidetree inference. If that doesn't work, you can try to use PAGAN2 inside the precompiled Docker container available at Docker hub. Please read the instructions for that below. If your system supports Singularity but no Docker, you can easily convert the PAGAN2 Docker container to run under Singularity. Please read the instructions for that at the bottom.
 
 ### Instructions
 Both options naturally require that one has Docker installed...
@@ -23,7 +23,7 @@ docker tag ariloytynoja/pagan2 pagan2
 wget https://raw.githubusercontent.com/ariloytynoja/pagan-msa/master/examples/454_pileup/454_reads.fas 
 ```
 
-**Run PAGAN2 inside a container**
+**Run PAGAN2 inside the container**
 ```
 docker run --rm -v `pwd`:/data \
   pagan2 --pileup --homopolymer \
@@ -107,3 +107,39 @@ docker run --rm -v `pwd`:/data \
   -q 454_reads.fas -o 454_aligned
 ```
 The Docker container should run on non-Linux systems.
+
+#### 3. Using the precompiled Docker image with Singularity
+
+**Get the image**
+```
+singularity build pagan2.sif docker://ariloytynoja/pagan2
+```
+
+**Get some data**
+```
+mkdir data
+wget https://raw.githubusercontent.com/ariloytynoja/pagan-msa/master/examples/454_pileup/454_reads.fas -P data/
+```
+
+**Run PAGAN2 inside the container**
+```
+singularity run -B `pwd`/data:/data \
+  pagan2.sif --pileup --homopolymer \
+  -q data/454_reads.fas -o data/454_aligned.fas
+```
+
+Note that we downloaded the data to a directory called ```data``` and run the analysis outside of that directory. The reason for this is that Singularity doesn't support the Docker WORKDIR and we have to specify the path with "data/" prefix. This prefix can be added to any path but with this arrangement it is intuitive. As the options are always the same, we can write them in a script file and call that instead.
+
+**Create a script file to simplify the command**
+```
+cat > pagan2.sh << EOF 
+#!/bin/bash
+singularity run -B `pwd`/data:/data pagan2.sif "\$@"
+EOF
+
+chmod +x pagan2.sh 
+
+./pagan2.sh --pileup --homopolymer \
+  -q data/454_reads.fas -o data/454_aligned
+```
+
