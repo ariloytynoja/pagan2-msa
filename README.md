@@ -1,11 +1,20 @@
 
-[![PAGAN](http://wasabiapp.org/download/theme/icons/pagan.png)](http://wasabiapp.org/software/pagan/) 
+<img src="https://raw.githubusercontent.com/ariloytynoja/pagan-msa/master/docs/data/pagan.png" alt="PAGAN" width="50"/>
+
 # PAGAN2
-PAGAN2 is a general-purpose method for the alignment of DNA, codon and amino-acid sequences as graphs. It aligns sequences either with pileup or, when related by a tree, using phylogeny-aware progressive alignment algorithm. In both cases it uses graphs to describe the uncertainty in the presence of characters at certain sequence positions. PAGAN2 is largely compatible with PAGAN but implements new algorithms for alignment anchoring and memory handling. PAGAN2 can align sequences of several hundreds of kilobases in length.
+PAGAN2 is a general-purpose method for the alignment of DNA, codon and amino-acid sequences as graphs. It aligns sequences either with pileup or, when related by a tree, using phylogeny-aware progressive alignment algorithm. In both cases it uses graphs to describe the uncertainty in the presence of characters at certain sequence positions. PAGAN2 is largely compatible with PAGAN but implements new algorithms for alignment anchoring and memory handling. As a result, **PAGAN2 can align sequences of several hundreds of kilobases in length**. 
+
+If you use Linux and just want to **use** PAGAN2 (i.e. not see the source code and compile it from scratch), please download the latest bundle (```pagan2.linux64.[latest].tgz```) from the [bin folder](bin/). This package includes all helper applications needed e.g. for the guidetree inference. 
+
+See [the original PAGAN documentation](https://github.com/ariloytynoja/pagan-msa) for the usage instructions.
+
+---
+
+### Compilation of PAGAN2
 
 PAGAN2 uses the NCBI TOOLKIT and Boost libraries. The NCBI TOOLKIT does not compile with GCC compiler newer than 4.8 and also requires a rather old version of libc. The code compiles well on Ubuntu 14.04 and instructions are provided for building it with that using Docker.
 
-If you use Linux and just want to **use PAGAN2** (i.e. not see the source code and compile it from scratch), please go to the PAGAN homepage at http://wasabiapp.org/software/pagan and download the latest PAGAN2 package there. This package includes all helper applications needed e.g. for the guidetree inference. If that doesn't work, you can try to use PAGAN2 inside the precompiled Docker container available at Docker hub. Please read the instructions for that below. If your system supports Singularity but no Docker, you can easily convert the PAGAN2 Docker container to run under Singularity. Please read the instructions for that at the bottom.
+If that doesn't work on your system, you can try to use PAGAN2 inside the precompiled Docker container available at Docker hub. Please read the instructions for that below. If your system supports Singularity but no Docker, you can easily convert the PAGAN2 Docker container to run under Singularity. Please read the instructions for that at the bottom.
 
 ### Instructions
 Both options naturally require that one has Docker installed...
