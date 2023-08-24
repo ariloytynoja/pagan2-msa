@@ -6,7 +6,7 @@ PAGAN2 is a general-purpose method for the alignment of DNA, codon and amino-aci
 
 If you use Linux and just want to **use** PAGAN2 (i.e. not see the source code and compile it from scratch), please download the latest bundle (```pagan2.linux64.[latest].tgz```) from the [bin folder](bin/). This package includes all helper applications needed e.g. for the guidetree inference. 
 
-See [the original PAGAN documentation](https://github.com/ariloytynoja/pagan-msa) for the usage instructions.
+See [the original PAGAN documentation](https://ariloytynoja.github.io/pagan-msa/) for the usage instructions.
 
 ---
 
