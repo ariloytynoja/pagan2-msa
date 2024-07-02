@@ -330,7 +330,7 @@ vector<string> Text_utils::split(const string & s, unsigned int n)
 /******************************************************************************/
 
 string Text_utils::remove_substrings(const string & s, char block_beginning, char block_ending)
-throw (Exception)
+
 {
   string t = "";
   int block_count = 0;
@@ -489,7 +489,7 @@ String_tokenizer::String_tokenizer(const string & s, const string & delimiters, 
     current_position = 0;
 }
 
-string String_tokenizer::next_token() throw (Exception)
+string String_tokenizer::next_token() 
 {
     if(!has_more_token()) throw Exception("No more token in tokenizer.");
     return tokens[current_position++];

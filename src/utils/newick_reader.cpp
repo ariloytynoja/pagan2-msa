@@ -83,7 +83,7 @@ Newick_reader::Newick_reader()
 
 /*******************************************/
 
-string Newick_reader::read_tree(const string & filename) throw (IOException)
+string Newick_reader::read_tree(const string & filename) 
 {
     ifstream ist(filename.c_str());
     if (!ist) throw IOException("Newick_reader::read_tree. Can't open input file: "+filename);
@@ -100,7 +100,7 @@ string Newick_reader::read_tree(const string & filename) throw (IOException)
 
 /*******************************************/
 
-Node * Newick_reader::parenthesis_to_node(const string & description) throw (Exception)
+Node * Newick_reader::parenthesis_to_node(const string & description) 
 {
 //    cout<<description<<endl;
     Newick_reader::Element elt = Newick_reader::get_element(description);
@@ -234,7 +234,7 @@ Node * Newick_reader::parenthesis_to_node(const string & description) throw (Exc
 
 /*******************************************/
 
-Node * Newick_reader::parenthesis_to_tree(const string & description) throw (Exception)
+Node * Newick_reader::parenthesis_to_tree(const string & description) 
 {
     string::size_type lastP  = description.rfind(')');
     if(lastP == string::npos)
@@ -328,7 +328,7 @@ Node * Newick_reader::parenthesis_to_tree(const string & description) throw (Exc
 
 /*******************************************/
 
-Newick_reader::Element Newick_reader::get_element(const string & elt) throw (Exception)
+Newick_reader::Element Newick_reader::get_element(const string & elt) 
 {
     Element element;
     element.length    = ""; //default

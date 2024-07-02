@@ -341,7 +341,7 @@ class Text_utils
     * @throw Exception If some blocks are not well formed.
     */
     static string remove_substrings(const string & s, char block_beginning, char block_ending)
-    throw (Exception);
+    ;
 
     /**
     * @brief Remove all occurences of a character in a string.
@@ -398,7 +398,7 @@ class Node_tokenizer
     mutable unsigned int current_position;
 
     public:
-    Node_tokenizer(const string & description) throw (IOException): tokens(), current_position(0)
+    Node_tokenizer(const string & description) : tokens(), current_position(0)
     {
         unsigned int tok_count = 0;
         int par_count = 0;
@@ -528,7 +528,7 @@ class String_tokenizer
          *
          * @return The next token if there is one.
          */
-        string next_token() throw (Exception);
+        string next_token() ;
 
         /**
          * @brief Tell if some token are still available.
