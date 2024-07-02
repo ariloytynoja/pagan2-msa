@@ -76,21 +76,21 @@ public:
 
     void set_chars_by_line(int n) { chars_by_line = n; }
 
-    void read(istream & input, vector<Fasta_entry> & seqs, bool short_names, bool degap) const throw (Exception);
-    void read(const string & path, vector<Fasta_entry> & seqs, bool short_names=false, bool degap=false) const throw (Exception)
+    void read(istream & input, vector<Fasta_entry> & seqs, bool short_names, bool degap) const ;
+    void read(const string & path, vector<Fasta_entry> & seqs, bool short_names=false, bool degap=false) const 
     {
         ifstream input(path.c_str(), ios::in);
         read(input, seqs, short_names,degap);
         input.close();
     }
-    void read_fasta(istream & input, vector<Fasta_entry> & seqs, bool short_names=false, bool degap=false) const throw (Exception);
-    void read_fastq(istream & input, vector<Fasta_entry> & seqs) const throw (Exception);
-    void read_graph(istream & input, vector<Fasta_entry> & seqs, bool short_names) const throw (Exception);
+    void read_fasta(istream & input, vector<Fasta_entry> & seqs, bool short_names=false, bool degap=false) const ;
+    void read_fastq(istream & input, vector<Fasta_entry> & seqs) const ;
+    void read_graph(istream & input, vector<Fasta_entry> & seqs, bool short_names) const ;
 
-    void trim_fastq_reads(vector<Fasta_entry> * seqs) const throw (Exception);
+    void trim_fastq_reads(vector<Fasta_entry> * seqs) const ;
 
-    void write(ostream & output, const vector<Fasta_entry> & seqs, string format) const throw (Exception);
-    void write(const string & path, const vector<Fasta_entry> & seqs, string format, bool overwrite=true) const throw (Exception)
+    void write(ostream & output, const vector<Fasta_entry> & seqs, string format) const ;
+    void write(const string & path, const vector<Fasta_entry> & seqs, string format, bool overwrite=true) const 
     {
         string suffix = this->get_format_suffix(format);
         ofstream output( (path+suffix).c_str(), overwrite ? (ios::out) : (ios::out|ios::app));
@@ -99,15 +99,15 @@ public:
         output.close();
     }
 
-    string get_format_suffix(string format) const throw (Exception);
-    void write_fasta(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception);
-    void write_interleaved(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception);
-    void write_sequential(ostream & output, const vector<Fasta_entry> & seqs, bool truncate) const throw (Exception);
-    void write_long_sequential(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception);
-    void write_simple_nexus(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception);
+    string get_format_suffix(string format) const ;
+    void write_fasta(ostream & output, const vector<Fasta_entry> & seqs) const ;
+    void write_interleaved(ostream & output, const vector<Fasta_entry> & seqs) const ;
+    void write_sequential(ostream & output, const vector<Fasta_entry> & seqs, bool truncate) const ;
+    void write_long_sequential(ostream & output, const vector<Fasta_entry> & seqs) const ;
+    void write_simple_nexus(ostream & output, const vector<Fasta_entry> & seqs) const ;
 
-    void write_dna(ostream & output, const vector<Fasta_entry> & seqs, const vector<Fasta_entry> & org_seqs, Node *root, int output_type=Fasta_reader::plain_alignment) const throw (Exception);
-    void write_dna(const string & path, const vector<Fasta_entry> & seqs, const vector<Fasta_entry> & org_seqs, Node *root, bool overwrite=true, int output_type=Fasta_reader::plain_alignment) const throw (Exception)
+    void write_dna(ostream & output, const vector<Fasta_entry> & seqs, const vector<Fasta_entry> & org_seqs, Node *root, int output_type=Fasta_reader::plain_alignment) const ;
+    void write_dna(const string & path, const vector<Fasta_entry> & seqs, const vector<Fasta_entry> & org_seqs, Node *root, bool overwrite=true, int output_type=Fasta_reader::plain_alignment) const 
     {
         string suffix = ".fas";
         ofstream output( (path+suffix).c_str(), overwrite ? (ios::out) : (ios::out|ios::app) );
@@ -117,12 +117,12 @@ public:
     }
 
     void get_DNA_seqs(Node *root, const vector<Fasta_entry> *org_seqs, map<string,string> *dna_seqs);
-    void backtranslate_dna(const vector<Fasta_entry> & seqs, const map<string,string> *dna_seqs, vector<Fasta_entry> &outseqs, bool include_mock_ancestors=false) const throw (Exception);
+    void backtranslate_dna(const vector<Fasta_entry> & seqs, const map<string,string> *dna_seqs, vector<Fasta_entry> &outseqs, bool include_mock_ancestors=false) const ;
 
     void print_fasta_entry(ostream & output, const Fasta_entry *entry) const;
 
-    void write_fastq(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception);
-    void write_fastq(const string & path, const vector<Fasta_entry> & seqs, bool overwrite=true) const throw (Exception)
+    void write_fastq(ostream & output, const vector<Fasta_entry> & seqs) const ;
+    void write_fastq(const string & path, const vector<Fasta_entry> & seqs, bool overwrite=true) const 
     {
         string suffix = ".fastq";
         ofstream output( (path+suffix).c_str(), overwrite ? (ios::out) : (ios::out|ios::app));
@@ -142,8 +142,8 @@ public:
         output.close();
     }
 
-    void write_graph(ostream & output, Node * root) const throw (Exception);
-    void write_graph(const string & path, Node * root, bool overwrite=true) const throw (Exception)
+    void write_graph(ostream & output, Node * root) const ;
+    void write_graph(const string & path, Node * root, bool overwrite=true) const 
     {
         string suffix = ".grp";
         ofstream output( (path+suffix).c_str(), overwrite ? (ios::out) : (ios::out|ios::app));
@@ -152,11 +152,11 @@ public:
         output.close();
     }
 
-    void remove_gap_only_columns(vector<Fasta_entry> *sequences)  throw (Exception);
-    void remove_gaps(string *seq) const throw (Exception);
-    void remove_gaps(vector<Fasta_entry> *seqs) const throw (Exception);
+    void remove_gap_only_columns(vector<Fasta_entry> *sequences)  ;
+    void remove_gaps(string *seq) const ;
+    void remove_gaps(vector<Fasta_entry> *seqs) const ;
 
-    bool check_alphabet(vector<Fasta_entry> *sequences, int data_type = -1)  throw (Exception);
+    bool check_alphabet(vector<Fasta_entry> *sequences, int data_type = -1)  ;
     bool check_sequence_names(const vector<Fasta_entry> *sequences,const vector<Node*> *leaf_nodes) const;
 
     float* base_frequencies() { return dna_pi; }

@@ -1060,7 +1060,7 @@ void Node::additional_sites_before_alignment_column(int j,vector<Insertion_at_no
 
 /***************************************************************************/
 
-void Node::write_metapost_sequence_graph(ostream *output, ostream *output2, int *count, int root_length) const throw (Exception)
+void Node::write_metapost_sequence_graph(ostream *output, ostream *output2, int *count, int root_length) const 
 {
     *output<<"beginfig("<<*count<<");\npickup pencircle scaled 1pt;\npath c[];\ndefaultscale := 0.5;\n";
     vector<Site> *sites = this->sequence->get_sites();
@@ -1162,7 +1162,7 @@ void Node::write_metapost_sequence_graph(ostream *output, ostream *output2, int 
 
 }
 
-void Node::write_metapost_alignment_graph(ostream *output, ostream *output2, int *count, int root_length) const throw (Exception)
+void Node::write_metapost_alignment_graph(ostream *output, ostream *output2, int *count, int root_length) const 
 {
     vector<Site> *sites = this->sequence->get_sites();
 

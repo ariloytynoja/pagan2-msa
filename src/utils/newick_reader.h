@@ -84,9 +84,9 @@ public:
     Newick_reader();
     ~Newick_reader() {}
 
-    string read_tree(const string & filename) throw (IOException);
-    Node * parenthesis_to_node(const string & description) throw (Exception);
-    Node * parenthesis_to_tree(const string & description) throw (Exception);
+    string read_tree(const string & filename) ;
+    Node * parenthesis_to_node(const string & description) ;
+    Node * parenthesis_to_tree(const string & description) ;
 
     struct Element
     {
@@ -97,7 +97,7 @@ public:
     };
 
     bool removed_multifurcation() { return has_warned; }
-    static Element get_element(const string & elt) throw (Exception);
+    static Element get_element(const string & elt) ;
 };
 
 } //end of namespace ppa.

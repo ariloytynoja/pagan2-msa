@@ -31,7 +31,7 @@ Xml_writer::Xml_writer()
 
 /****************************************************************************************/
 
-void Xml_writer::write(ostream & output, const Node *root, const vector<Fasta_entry> & seqs, bool append_comment) const throw (Exception)
+void Xml_writer::write(ostream & output, const Node *root, const vector<Fasta_entry> & seqs, bool append_comment) const 
 {
     // Checking the existence of specified file, and possibility to open it in write mode
     if (! output) { throw IOException ("Xml_writer::write. Failed to open file"); }

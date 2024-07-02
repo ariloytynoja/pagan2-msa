@@ -77,7 +77,7 @@ using namespace ppa;
 
 /****************************************************************************************/
 
-void Fasta_reader::read(istream & input, vector<Fasta_entry> & seqs, bool short_names, bool degap) const throw (Exception)
+void Fasta_reader::read(istream & input, vector<Fasta_entry> & seqs, bool short_names, bool degap) const 
 {
     if (!input) { throw IOException ("Fasta_reader::read. Failed to open file"); }
 
@@ -135,7 +135,7 @@ void Fasta_reader::read(istream & input, vector<Fasta_entry> & seqs, bool short_
 
 }
 
-void Fasta_reader::read_fasta(istream & input, vector<Fasta_entry> & seqs, bool short_names, bool degap) const throw (Exception)
+void Fasta_reader::read_fasta(istream & input, vector<Fasta_entry> & seqs, bool short_names, bool degap) const 
 {
 
     string temp, name, comment, tmp_tid, sequence = "";  // Initialization
@@ -263,7 +263,7 @@ void Fasta_reader::read_fasta(istream & input, vector<Fasta_entry> & seqs, bool 
     }
 }
 
-void Fasta_reader::read_fastq(istream & input, vector<Fasta_entry> & seqs) const throw (Exception)
+void Fasta_reader::read_fastq(istream & input, vector<Fasta_entry> & seqs) const 
 {
     string temp, name, comment = "";  // Initialization
 
@@ -341,7 +341,7 @@ void Fasta_reader::read_fastq(istream & input, vector<Fasta_entry> & seqs) const
 
 }
 
-void Fasta_reader::read_graph(istream & input, vector<Fasta_entry> & seqs, bool short_names = false) const throw (Exception)
+void Fasta_reader::read_graph(istream & input, vector<Fasta_entry> & seqs, bool short_names = false) const 
 {
 
     string temp, name, comment, sequence, block = "";  // Initialization
@@ -509,7 +509,7 @@ void Fasta_reader::read_graph(istream & input, vector<Fasta_entry> & seqs, bool 
 
 /****************************************************************************************/
 
-void Fasta_reader::write(ostream & output, const vector<Fasta_entry> & seqs, string format) const throw (Exception)
+void Fasta_reader::write(ostream & output, const vector<Fasta_entry> & seqs, string format) const 
 {
     // Checking the existence of specified file, and possibility to open it in write mode
     if (! output) { throw IOException ("Fasta_reader::write. Failed to open file"); }
@@ -575,7 +575,7 @@ void Fasta_reader::write(ostream & output, const vector<Fasta_entry> & seqs, str
     }
 }
 
-string Fasta_reader::get_format_suffix(string format) const throw (Exception)
+string Fasta_reader::get_format_suffix(string format) const 
 {
     if(format == "raxml")
         return ".phy";
@@ -593,7 +593,7 @@ string Fasta_reader::get_format_suffix(string format) const throw (Exception)
         return ".fas";
 
 }
-void Fasta_reader::write_fasta(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception)
+void Fasta_reader::write_fasta(ostream & output, const vector<Fasta_entry> & seqs) const 
 {
     vector<Fasta_entry>::const_iterator vi = seqs.begin();
 
@@ -628,7 +628,7 @@ void Fasta_reader::write_fasta(ostream & output, const vector<Fasta_entry> & seq
 }
 
 
-void Fasta_reader::write_interleaved(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception)
+void Fasta_reader::write_interleaved(ostream & output, const vector<Fasta_entry> & seqs) const 
 {
     vector<Fasta_entry>::const_iterator vi = seqs.begin();
     int length = vi->sequence.length();
@@ -652,7 +652,7 @@ void Fasta_reader::write_interleaved(ostream & output, const vector<Fasta_entry>
     }
 }
 
-void Fasta_reader::write_sequential(ostream & output, const vector<Fasta_entry> & seqs, bool truncate) const throw (Exception)
+void Fasta_reader::write_sequential(ostream & output, const vector<Fasta_entry> & seqs, bool truncate) const 
 {
 
     vector<Fasta_entry>::const_iterator vi = seqs.begin();
@@ -686,7 +686,7 @@ void Fasta_reader::write_sequential(ostream & output, const vector<Fasta_entry> 
     }
 }
 
-void Fasta_reader::write_long_sequential(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception)
+void Fasta_reader::write_long_sequential(ostream & output, const vector<Fasta_entry> & seqs) const 
 {
 
     vector<Fasta_entry>::const_iterator vi = seqs.begin();
@@ -697,7 +697,7 @@ void Fasta_reader::write_long_sequential(ostream & output, const vector<Fasta_en
         output << vi->name<< endl<<vi->sequence<<endl;
 }
 
-void Fasta_reader::write_simple_nexus(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception)
+void Fasta_reader::write_simple_nexus(ostream & output, const vector<Fasta_entry> & seqs) const 
 {
 
     vector<Fasta_entry>::const_iterator vi = seqs.begin();
@@ -758,7 +758,7 @@ void Fasta_reader::get_DNA_seqs(Node *root, const vector<Fasta_entry> *org_seqs,
 
 }
 
-void Fasta_reader::backtranslate_dna(const vector<Fasta_entry> & seqs, const map<string,string> *dna_seqs, vector<Fasta_entry> &outseqs, bool include_mock_ancestors) const throw (Exception)
+void Fasta_reader::backtranslate_dna(const vector<Fasta_entry> & seqs, const map<string,string> *dna_seqs, vector<Fasta_entry> &outseqs, bool include_mock_ancestors) const 
 {
     bool dna_seq_missing = false;
 
@@ -813,7 +813,7 @@ void Fasta_reader::backtranslate_dna(const vector<Fasta_entry> & seqs, const map
     }
 }
 
-void Fasta_reader::write_dna(ostream & output, const vector<Fasta_entry> & seqs, const vector<Fasta_entry> & org_seqs, Node *root, int output_type) const throw (Exception)
+void Fasta_reader::write_dna(ostream & output, const vector<Fasta_entry> & seqs, const vector<Fasta_entry> & org_seqs, Node *root, int output_type) const 
 {
     // Checking the existence of specified file, and possibility to open it in write mode
     if (! output) { throw IOException ("Fasta_reader::write_dna. Failed to open file"); }
@@ -1046,7 +1046,7 @@ void Fasta_reader::print_fasta_entry(ostream & output, const Fasta_entry *entry)
 
 /****************************************************************************************/
 
-void Fasta_reader::write_fastq(ostream & output, const vector<Fasta_entry> & seqs) const throw (Exception)
+void Fasta_reader::write_fastq(ostream & output, const vector<Fasta_entry> & seqs) const 
 {
     // Checking the existence of specified file, and possibility to open it in write mode
     if (! output) { throw IOException ("Fasta_reader::write_fastq. Failed to open file"); }
@@ -1064,7 +1064,7 @@ void Fasta_reader::write_fastq(ostream & output, const vector<Fasta_entry> & seq
 
 }
 
-void Fasta_reader::write_graph(ostream & output, Node * root) const throw (Exception)
+void Fasta_reader::write_graph(ostream & output, Node * root) const 
 {
 
     Sequence *sequence = root->get_sequence();
@@ -1107,7 +1107,7 @@ void Fasta_reader::write_graph(ostream & output, Node * root) const throw (Excep
 
 /****************************************************************************************/
 
-void Fasta_reader::remove_gap_only_columns(vector<Fasta_entry> *sequences)  throw (Exception)
+void Fasta_reader::remove_gap_only_columns(vector<Fasta_entry> *sequences)  
 {
     int length = sequences->at(0).sequence.length();
     vector<Fasta_entry>::iterator vi = sequences->begin();
@@ -1146,7 +1146,7 @@ void Fasta_reader::remove_gap_only_columns(vector<Fasta_entry> *sequences)  thro
 
 /****************************************************************************************/
 
-void Fasta_reader::remove_gaps(string *seq) const throw (Exception)
+void Fasta_reader::remove_gaps(string *seq) const 
 {
     /*
     for(int i=0;i<(int)seq->length();)
@@ -1168,7 +1168,7 @@ void Fasta_reader::remove_gaps(string *seq) const throw (Exception)
     sequence = seqss.str();
 }
 
-void Fasta_reader::remove_gaps(vector<Fasta_entry> *seqs) const throw (Exception)
+void Fasta_reader::remove_gaps(vector<Fasta_entry> *seqs) const 
 {
     for(int i=0;i<(int)seqs->size();i++)
         this->remove_gaps(&seqs->at(i).sequence);
@@ -1177,7 +1177,7 @@ void Fasta_reader::remove_gaps(vector<Fasta_entry> *seqs) const throw (Exception
 
 /****************************************************************************************/
 
-bool Fasta_reader::check_alphabet(vector<Fasta_entry> * sequences,int data_type) throw (Exception)
+bool Fasta_reader::check_alphabet(vector<Fasta_entry> * sequences,int data_type) 
 {
 
     bool allow_gaps = Settings_handle::st.is("ref-seqfile");

@@ -1600,7 +1600,7 @@ public:
 
     /************************************/
 
-    void write_nhx_tree(string path, string suffix, bool overwrite=true) const throw (Exception)
+    void write_nhx_tree(string path, string suffix, bool overwrite=true) const 
     {
         ofstream output( (path+"."+suffix).c_str(), overwrite ? (ios::out) : (ios::out|ios::app));
 
@@ -2082,7 +2082,7 @@ public:
 
     /************************************/
 
-    void write_sequence_graphs(bool overwrite=true) const throw (Exception)
+    void write_sequence_graphs(bool overwrite=true) const 
     {
 
         string file = Settings_handle::st.get("mpost-graph-file").as<string>();
@@ -2136,7 +2136,7 @@ public:
 
     }
 
-    void write_metapost_graphs(ostream *output, ostream *output2, int *count, int root_length) const throw (Exception)
+    void write_metapost_graphs(ostream *output, ostream *output2, int *count, int root_length) const 
     {
         if(leaf)
         {
@@ -2156,9 +2156,9 @@ public:
         }
     }
 
-    void write_metapost_sequence_graph(ostream *output, ostream *output2, int *count, int root_length) const throw (Exception);
+    void write_metapost_sequence_graph(ostream *output, ostream *output2, int *count, int root_length) const ;
 
-    void write_metapost_alignment_graph(ostream *output, ostream *output2, int *count, int root_length) const throw (Exception);
+    void write_metapost_alignment_graph(ostream *output, ostream *output2, int *count, int root_length) const ;
 
     static string get_node_fill_color(char c)
     {
