@@ -21,6 +21,11 @@
 #ifndef NCBI_BLAST_H
 #define NCBI_BLAST_H
 
+// The NCBI C++ toolkit is an optional dependency: every USE of this class is
+// already behind #ifdef NCBI_TOOLKIT, but these includes were not, so a build
+// without the toolkit failed here rather than simply omitting the feature.
+#ifdef NCBI_TOOLKIT
+
 #include <objects/seqalign/Dense_diag.hpp>
 #include <objects/seqalign/Dense_seg.hpp>
 #include <objects/seqloc/Seq_loc.hpp>
@@ -243,5 +248,7 @@ public:
 
 
 }
+
+#endif // NCBI_TOOLKIT
 
 #endif

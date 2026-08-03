@@ -22,7 +22,9 @@
 #include "utils/log_output.h"
 
 #include <stdio.h>
+#ifndef NO_CURL
 #include <curl/curl.h>
+#endif
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -39,6 +41,13 @@ Check_version::Check_version(float version)
     ss<<"\nThis is PAGAN v."<<version<<".\nChecking if updates are available at https://github.com/ariloytynoja/pagan-msa.\n";
     Log_output::write_out(ss.str(),0);
 
+#ifdef NO_CURL
+    // Built without libcurl: the update check is a convenience, not a
+    // requirement, and needing libcurl headers to build at all is a hard
+    // barrier for offline//HPC builds.
+    Log_output::write_out("\nBuilt without libcurl; skipping the update check.\n\n",0);
+    return;
+#else
     CURL *curl;
     CURLcode res;
     std::string readBuffer;
@@ -86,6 +95,7 @@ Check_version::Check_version(float version)
           Log_output::write_out("\nNo updates are available.\n\n",0);
 
     }
+#endif
     return;
 
 }
