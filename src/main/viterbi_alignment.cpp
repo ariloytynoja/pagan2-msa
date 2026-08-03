@@ -23,6 +23,7 @@
 #include "utils/exceptions.h"
 #include "utils/codon_translation.h"
 #include "utils/find_anchors.h"
+#include "utils/external_anchors.h"
 #include "utils/exonerate_queries.h"
 #include "utils/tunnel_matrix.h"
 #include "main/node.h"
@@ -50,6 +51,11 @@ float Viterbi_alignment::define_tunnel(Sequence *left_sequence,Sequence *right_s
     Codon_translation ct;
 
     bool is_dna = evol_model->get_data_type() == Model_factory::dna;
+    // True only when nucleotide input has just been translated for anchoring.
+    // Distinct from !is_dna, which is also true for genuine protein input --
+    // there the caller's coordinates are already protein ones and must NOT be
+    // divided by three.
+    bool translated_to_protein = false;
 
     if( ( evol_model->get_data_type() == Model_factory::dna && Settings_handle::st.is("codons") ) || evol_model->get_data_type() == Model_factory::codon)
     {
@@ -57,6 +63,7 @@ float Viterbi_alignment::define_tunnel(Sequence *left_sequence,Sequence *right_s
         s1 = ct.gapped_DNA_to_protein(&s1);
         s2 = ct.gapped_DNA_to_protein(&s2);
         is_dna = false;
+        translated_to_protein = true;
     }
 
     vector<Substring_hit> hits;
@@ -66,7 +73,26 @@ float Viterbi_alignment::define_tunnel(Sequence *left_sequence,Sequence *right_s
 //        clock_gettime(CLOCK_MONOTONIC, &tcpu_start);
 
     Find_anchors fa;
-    if(Settings_handle::st.is("use-prefix-anchors"))
+
+    // Anchors the caller already has, e.g. from a previous BLAST/minimap2 run
+    // or a curated alignment.  Only for pairs actually listed in the file;
+    // anything else falls through to the normal providers below, so a file
+    // covering just the hard pairs is enough.
+    static External_anchors external_anchors;
+    bool have_external = false;
+
+    if(Settings_handle::st.is("anchor-file"))
+    {
+        have_external = external_anchors.get_anchors(
+            left_sequence_id, right_sequence_id, &hits, translated_to_protein,
+            (int)s1.length(), (int)s2.length());
+    }
+
+    if(have_external)
+    {
+        // nothing to search for: the anchors are already in 'hits'
+    }
+    else if(Settings_handle::st.is("use-prefix-anchors"))
     {
         fa.find_long_substrings(&s1,&s2,&hits,p_len);
     }
@@ -144,19 +170,33 @@ float Viterbi_alignment::define_tunnel(Sequence *left_sequence,Sequence *right_s
         s2 = ct.gapped_DNA_to_protein(&s2);
     }
 
+    // Without NCBI_TOOLKIT this used to be an "#endif else", i.e. a dangling
+    // else with no matching if, so the project simply would not compile
+    // unless the NCBI toolkit was available.  A bool keeps both builds valid.
+    bool use_ncbi_tunnel = false;
 #ifdef NCBI_TOOLKIT
-    if(! Settings_handle::st.is("no-ncbi"))
+    use_ncbi_tunnel = ! Settings_handle::st.is("no-ncbi");
+#endif
+
+#ifdef NCBI_TOOLKIT
+    if(use_ncbi_tunnel)
     {
 
         int overlap_total = Settings_handle::st.get("ncbi-threshold-overlap-total").as<int>();
         int overlap_partly = Settings_handle::st.get("ncbi-threshold-overlap-partly").as<int>();
 
-        fa.eliminate_bad_hits(hits, overlap_total, overlap_partly);
+        // Anchors supplied by the caller are taken as given -- culling them
+        // here would silently discard exactly what was asked for.  The tunnel
+        // is still built the same way.
+        if(!have_external)
+            fa.eliminate_bad_hits(hits, overlap_total, overlap_partly);
+
         fa.define_tunnel_with_overlapping_hits(hits, upper_bound, lower_bound, s1, s2, Settings_handle::st.get("anchors-offset").as<int>(), empty_tunnel_blocks);
 
     }
 #endif
-    else
+
+    if(!use_ncbi_tunnel)
     {
         fa.check_hits_order_conflict(&s1,&s2,&hits);
 

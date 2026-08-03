@@ -130,6 +130,7 @@ OBJECTS       = main.o \
 		exonerate_queries.o \
 		log_output.o \
 		find_anchors.o \
+		external_anchors.o \
 		codon_translation.o \
 		input_output_parser.o \
 		mafft_alignment.o \
@@ -442,6 +443,13 @@ find_anchors.o: utils/find_anchors.cpp utils/find_anchors.h \
 		main/sequence.h \
 		utils/log_output.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o find_anchors.o utils/find_anchors.cpp
+
+external_anchors.o: utils/external_anchors.cpp utils/external_anchors.h \
+		utils/substring_hit.h \
+		utils/settings_handle.h \
+		utils/settings.h \
+		utils/log_output.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o external_anchors.o utils/external_anchors.cpp
 
 codon_translation.o: utils/codon_translation.cpp utils/codon_translation.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o codon_translation.o utils/codon_translation.cpp

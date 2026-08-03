@@ -158,6 +158,7 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
         ("anchoring-threshold",po::value<float>()->default_value(1,"1.0"),"anchoring coverage threshold for skipping")
         ("use-prefix-anchors","use prefix approach to anchor alignment")
         ("prefix-hit-length", po::value<int>()->default_value(30), "prefix hit length for anchor")
+        ("anchor-file", po::value<string>(), "use pre-computed anchors from file: 'seq1 seq2 start1 start2 length [score]', 1-based nucleotide coordinates; pairs not listed are anchored normally")
         ("keep-temp-files","keep temporary files (mainly for debugging)")
     ;
 
