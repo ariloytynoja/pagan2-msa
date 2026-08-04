@@ -1100,7 +1100,17 @@ public:
         Site *site = this->get_sequence()->get_site_at(pos);
 
         int new_state = mf->get_child_parsimony_state(parent_state,site->get_state());
-        site->set_state(new_state);
+
+        // The child-parsimony table can yield -1 for a (parent,child) state
+        // pair it has no entry for.  Storing that overwrites a perfectly good
+        // state with the sentinel used for the terminal start/stop sites, and
+        // the site is a real, matched one that WILL be emitted: the next
+        // Sequence::get_sequence_string() call passes it to
+        // Model_factory::get_ancestral_character_alphabet_at(), whose .at(-1)
+        // wraps to a huge size_t and throws std::out_of_range, aborting the
+        // whole run.  Keep the existing state instead of poisoning it.
+        if(new_state >= 0)
+            site->set_state(new_state);
 
     }
 
