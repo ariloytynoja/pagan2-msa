@@ -1926,8 +1926,16 @@ void Reads_aligner::find_targets_for_query(Node *root, Fasta_entry *read, Model_
         {
             string target_node = it->first;
 
-            map<string,Node*>::iterator nit = nodes.find(target_node);
-            double score = this->read_match_score( nit->second, read, mf);
+            Node *target = Reads_aligner::find_target_node(nodes,target_node);
+            if(target == 0)
+            {
+                stringstream ss;
+                ss<<"Exonerate hit for read "<<read->name<<" names node '"<<target_node
+                  <<"' which is not in this tree; skipping this candidate.\n";
+                Log_output::write_out(ss.str(),0);
+                continue;
+            }
+            double score = this->read_match_score( target, read, mf);
 
             stringstream ss;
             ss<<target_node<<" with score "<<score<<"\n";
@@ -1949,7 +1957,7 @@ void Reads_aligner::find_targets_for_query(Node *root, Fasta_entry *read, Model_
                 Fasta_entry rev_seq = *read;
                 rev_seq.sequence = this->reverse_complement(rev_seq.sequence);
 
-                double score = this->read_match_score( nit->second, &rev_seq, mf);
+                double score = this->read_match_score( target, &rev_seq, mf);
 
                 stringstream ss;
                 ss<<target_node<<"(rc) with score "<<score<<"\n";
@@ -2177,8 +2185,21 @@ void Reads_aligner::find_nodes_for_query(Node *root, Fasta_entry *read, Model_fa
 
                 while(tit != tid_nodes.end() && matching_nodes>0)
                 {
-                    map<string,Node*>::iterator nit = nodes.find(tit->second);
-                    double score = this->read_match_score( nit->second, read, mf);
+                    Node *target = Reads_aligner::find_target_node(nodes,tit->second);
+                    if(target == 0)
+                    {
+                        stringstream ss;
+                        ss<<"TID target '"<<tit->second<<"' for read "<<read->name
+                          <<" is not in this tree; skipping this candidate.\n";
+                        Log_output::write_out(ss.str(),0);
+                        // NB: advance the loop variables before continuing --
+                        // this while() increments them at the bottom, so a
+                        // bare continue would spin forever.
+                        tit++;
+                        matching_nodes--;
+                        continue;
+                    }
+                    double score = this->read_match_score( target, read, mf);
 
                     stringstream ss;
                     ss<<tit->second<<" with score "<<score<<"\n";
@@ -2202,7 +2223,7 @@ void Reads_aligner::find_nodes_for_query(Node *root, Fasta_entry *read, Model_fa
                         Fasta_entry rev_seq = *read;
                         rev_seq.sequence = this->reverse_complement(rev_seq.sequence);
 
-                        double score = this->read_match_score( nit->second, &rev_seq, mf);
+                        double score = this->read_match_score( target, &rev_seq, mf);
 
                         stringstream ss;
                         ss<<tit->second<<"(rc) with score "<<score<<"\n";
@@ -2292,23 +2313,31 @@ void Reads_aligner::select_node_for_query(Node *root, vector<Alignment_set> *tar
 
     for(int i=0;i<(int)targets->size();i++)
     {
-        map<string,Node*>::iterator nit = nodes.find(targets->at(i).seq2_id);
-        double score = this->query_match_score(nit->second, query, mf);
+        string target_name = targets->at(i).seq2_id;
+        Node *target = Reads_aligner::find_target_node(nodes,target_name);
+        if(target == 0)
+        {
+            stringstream ss;
+            ss<<"Target '"<<target_name<<"' is not in this tree; skipping this candidate.\n";
+            Log_output::write_out(ss.str(),0);
+            continue;
+        }
+        double score = this->query_match_score(target, query, mf);
 
         stringstream ss;
-        ss<<"matches "<<nit->first<<" with score "<<score<<"\n";
+        ss<<"matches "<<target_name<<" with score "<<score<<"\n";
         Log_output::write_out(ss.str(),1); //2);
 
         if(score==best_score && !Settings_handle::st.is("one-placement-only"))
         {
             best_score = score;
-            best_node.append(" "+nit->first);
+            best_node.append(" "+target_name);
             best_targets.push_back(targets->at(i));
         }
         else if(score>=best_score)
         {
             best_score = score;
-            best_node = nit->first;
+            best_node = target_name;
 
             best_targets.clear();
             best_targets.push_back(targets->at(i));
@@ -2541,8 +2570,16 @@ void Reads_aligner::find_targets_for_queries(Node *root, vector<Fasta_entry> *re
             {
                 string target_node = it->first;
 
-                map<string,Node*>::iterator nit = nodes.find(target_node);
-                double score = this->read_match_score( nit->second, &reads->at(i), mf);
+                Node *target = Reads_aligner::find_target_node(nodes,target_node);
+                if(target == 0)
+                {
+                    stringstream ss;
+                    ss<<"Exonerate hit for read "<<reads->at(i).name<<" names node '"<<target_node
+                      <<"' which is not in this tree; skipping this candidate.\n";
+                    Log_output::write_out(ss.str(),0);
+                    continue;
+                }
+                double score = this->read_match_score( target, &reads->at(i), mf);
 
                 stringstream ss;
                 ss<<target_node<<" with score "<<score<<"\n";
@@ -2564,7 +2601,7 @@ void Reads_aligner::find_targets_for_queries(Node *root, vector<Fasta_entry> *re
                     Fasta_entry rev_seq = reads->at(i);
                     rev_seq.sequence = this->reverse_complement(rev_seq.sequence);
 
-                    double score = this->read_match_score( nit->second, &rev_seq, mf);
+                    double score = this->read_match_score( target, &rev_seq, mf);
 
                     stringstream ss;
                     ss<<target_node<<"(rc) with score "<<score<<"\n";
@@ -2798,8 +2835,21 @@ void Reads_aligner::find_nodes_for_queries(Node *root, vector<Fasta_entry> *read
 
                     while(tit != tid_nodes.end() && matching_nodes>0)
                     {
-                        map<string,Node*>::iterator nit = nodes.find(tit->second);
-                        double score = this->read_match_score( nit->second, &reads->at(i), mf);
+                        Node *target = Reads_aligner::find_target_node(nodes,tit->second);
+                        if(target == 0)
+                        {
+                            stringstream ss;
+                            ss<<"TID target '"<<tit->second<<"' for read "<<reads->at(i).name
+                              <<" is not in this tree; skipping this candidate.\n";
+                            Log_output::write_out(ss.str(),0);
+                            // NB: advance the loop variables before continuing --
+                            // this while() increments them at the bottom, so a
+                            // bare continue would spin forever.
+                            tit++;
+                            matching_nodes--;
+                            continue;
+                        }
+                        double score = this->read_match_score( target, &reads->at(i), mf);
 
                         stringstream ss;
                         ss<<tit->second<<" with score "<<score<<"\n";
@@ -2821,7 +2871,7 @@ void Reads_aligner::find_nodes_for_queries(Node *root, vector<Fasta_entry> *read
                             Fasta_entry rev_seq = reads->at(i);
                             rev_seq.sequence = this->reverse_complement(rev_seq.sequence);
 
-                            double score = this->read_match_score( nit->second, &rev_seq, mf);
+                            double score = this->read_match_score( target, &rev_seq, mf);
 
                             stringstream ss;
                             ss<<tit->second<<"(rc) with score "<<score<<"\n";
