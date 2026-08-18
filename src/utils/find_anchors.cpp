@@ -245,11 +245,21 @@ void Find_anchors::check_hits_order_conflict(std::string *seq1,std::string *seq2
     vector<Substring_hit>::iterator it1 = hits->begin();
     for(;it1!=hits->end();)
     {
-        it1->start_site_1+trim;
-        if(it1->start_site_1>len1) it1->start_site_1 == len1-1;
-        it1->start_site_2+trim;
-        if(it1->start_site_2>len1) it1->start_site_2 == len2-1;
+        it1->start_site_1 += trim;
+        it1->start_site_2 += trim;
         it1->length -= trim*2;
+        // Clamp the RANGE, not just the start: the loops below walk
+        // [start_site_1, start_site_1+length) and
+        // [start_site_2, start_site_2+length), so a start that merely sits
+        // one past the last valid index (a real Exonerate hit can report
+        // exactly this, a 1-based/0-based boundary case) still walks past
+        // len1/len2 for every later i/j unless length shrinks to match.
+        // Shrinking length to fit is also what correctly discards a hit
+        // that starts beyond the sequence entirely (length goes <= 0, and
+        // the loops below no-op on a non-positive length, same as an
+        // already-too-short hit here after plain trimming).
+        if(it1->start_site_1+it1->length>len1) it1->length = len1-it1->start_site_1;
+        if(it1->start_site_2+it1->length>len2) it1->length = len2-it1->start_site_2;
 
         bool overlap = false;
         for(int i=it1->start_site_1,j=it1->start_site_2;i<it1->start_site_1+it1->length && j<it1->start_site_2+it1->length;i++,j++)
