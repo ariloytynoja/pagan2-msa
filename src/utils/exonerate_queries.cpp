@@ -42,6 +42,25 @@ Exonerate_queries::Exonerate_queries()
 
 }
 
+bool Exonerate_queries::read_full_line(FILE *f, string *line)
+{
+    char buffer[256];
+
+    line->clear();
+
+    while( fgets(buffer, sizeof buffer, f) != NULL )
+    {
+        *line += buffer;
+
+        if( !line->empty() && (*line)[line->size()-1] == '\n' )
+            return true;
+    }
+
+    // End of input. A final line with no trailing newline is still a line;
+    // only a genuinely empty read means there was nothing left.
+    return !line->empty();
+}
+
 bool Exonerate_queries::test_executable()
 {
 
@@ -469,10 +488,10 @@ void Exonerate_queries::preselect_targets(map<string,string> *target_sequences, 
 
     // read exonerate output, summing the multiple hit scores
 
-    char line[256];
+    string line;
     map<string,multimap<string,hit> > all_hits;
 
-    while ( fgets( line, sizeof line, fpipe))
+    while ( read_full_line( fpipe, &line ))
     {
         this->read_output_line(&all_hits,line);
     }
@@ -693,11 +712,11 @@ void Exonerate_queries::local_alignment(map<string,string> *target_sequences, Fa
 
     // read exonerate output, summing the multiple hit scores
 
-    char line[256];
+    string line;
     map<string,hit> all_hits;
     vector<string> hit_names;
 
-    while ( fgets( line, sizeof line, fpipe))
+    while ( read_full_line( fpipe, &line ))
     {
         hit h;
         bool valid = split_sugar_string(string(line),&h);
@@ -867,11 +886,11 @@ void Exonerate_queries::local_alignment(Node *root, Fasta_entry *read, multimap<
 
     // read exonerate output, summing the multiple hit scores
 
-    char line[256];
+    string line;
     map<string,hit> all_hits;
     vector<string> hit_names;
 
-    while ( fgets( line, sizeof line, fpipe))
+    while ( read_full_line( fpipe, &line ))
     {
         hit h;
         bool valid = split_sugar_string(string(line),&h);
@@ -1021,10 +1040,10 @@ void Exonerate_queries::local_pairwise_alignment(string *str1,string *str2,vecto
 
     // read exonerate output, summing the multiple hit scores
 
-    char line[256];
+    string line;
     vector<hit> best_hits;
 
-    while ( fgets( line, sizeof line, fpipe))
+    while ( read_full_line( fpipe, &line ))
     {
 //        cout<<line;
         hit h;
