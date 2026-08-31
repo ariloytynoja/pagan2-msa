@@ -565,13 +565,18 @@ void Reads_aligner::query_placement_all(Node *root, vector<Fasta_entry> *reads, 
                 node->has_left_child(false);
                 delete node;
 
-                // Add suffix to get unique names
+                // Add suffix to get unique names.
+                // The surviving alignment here is node_rc, not node: node was
+                // just deleted, and ~Node() deletes right_child with it (only
+                // the LEFT child is spared by has_left_child(false)), so
+                // node->right_child is freed memory. Same as the forward
+                // branch above, which names the node it kept.
                 map<string,int>::iterator it = nodes_number.find(reads_for_this.at(i).name);
                 if(it!=nodes_number.end())
                 {
                     stringstream n;
-                    n<<node->right_child->get_name()<<"."<<it->second;
-                    node->right_child->set_name(n.str());
+                    n<<node_rc->right_child->get_name()<<"."<<it->second;
+                    node_rc->right_child->set_name(n.str());
                     it->second = it->second+1;
                 }
                 else
