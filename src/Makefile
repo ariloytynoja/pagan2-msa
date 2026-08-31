@@ -59,6 +59,7 @@ HEADERS       = main/node.h \
 		utils/int_matrix.h \
 		utils/fasta_entry.h \
 		utils/settings_handle.h \
+		utils/temp_dir.h \
 		utils/xml_writer.h \
 		utils/evol_model.h \
 		utils/check_version.h \
