@@ -88,7 +88,7 @@ docker cp pagan2app:/pagan2/src/pagan2 ./pagan2
  **Option 2: Build the helper apps and get them out**
 ```
 docker build \
-    -t pagan2app \
+    -t pagan2apps \
     -f Dockerfile.pagan2apps \
    .
    
