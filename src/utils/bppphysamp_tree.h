@@ -22,6 +22,7 @@
 #define BPPPHYSAMP_TREE_H
 
 #include "utils/settings_handle.h"
+#include "utils/temp_dir.h"
 #include "utils/fasta_entry.h"
 #include <fstream>
 #include <string>
@@ -38,16 +39,7 @@ class BppPhySamp_tree
 
     std::string get_temp_dir()
     {
-        std::string tmp_dir = "/tmp/";
-
-        if(Settings_handle::st.is("temp-folder"))
-            tmp_dir = Settings_handle::st.get("temp-folder").as<string>()+"/";
-
-        struct stat st;
-        if(stat(tmp_dir.c_str(),&st) != 0)
-            tmp_dir = "";
-
-        return tmp_dir;
+        return resolve_temp_dir();
     }
 
     void delete_files(int r);

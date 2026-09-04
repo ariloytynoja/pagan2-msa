@@ -22,6 +22,7 @@
 #define RAXML_TREE_H
 
 #include "utils/settings_handle.h"
+#include "utils/temp_dir.h"
 #include "utils/fasta_entry.h"
 #include <fstream>
 #include <string>
@@ -39,19 +40,26 @@ class RAxML_tree
 
     std::string get_temp_dir()
     {
-        std::string tmp_dir = "/tmp/";
+        std::string tmp_dir = resolve_temp_dir();
 
-        if(Settings_handle::st.is("temp-folder"))
+        // RAxML is invoked with "-w <dir>", which it requires to be an
+        // absolute path, so this one caller canonicalises what the others
+        // use verbatim.
+        //
+        // The buffer is allocated by realpath() rather than being a fixed
+        // char[200] on the stack: a resolved path may be up to PATH_MAX
+        // (4096) bytes, so the old buffer could be overflowed by a
+        // sufficiently deep --temp-folder.  A NULL return is also handled
+        // now; it was previously ignored and the uninitialised buffer used.
+        if(!tmp_dir.empty())
         {
-            tmp_dir = Settings_handle::st.get("temp-folder").as<string>()+"/";
-
-            char resolved_path[200];
-            char* rp = realpath(tmp_dir.c_str(), resolved_path);
-            tmp_dir = string(resolved_path)+"/";
+            char *resolved = realpath(tmp_dir.c_str(), NULL);
+            if(resolved != NULL)
+            {
+                tmp_dir = std::string(resolved)+"/";
+                free(resolved);
+            }
         }
-        struct stat st;
-        if(stat(tmp_dir.c_str(),&st) != 0)
-            tmp_dir = "";
 
         return tmp_dir;
     }
