@@ -478,6 +478,9 @@ void Exonerate_queries::preselect_targets(map<string,string> *target_sequences, 
     }
     pclose(fpipe);
 
+    if(!Settings_handle::st.is("keep-temp-files"))
+        this->delete_files(r);
+
 
     this->find_hits_for_queries(&all_hits, reads, best_hits);
 
