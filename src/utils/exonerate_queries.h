@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdio>
 #include <sys/stat.h>
 
 #include <omp.h>
@@ -77,6 +78,16 @@ class Exonerate_queries
 public:
     Exonerate_queries();
     bool test_executable();
+
+    // Read one complete line from *f, however long, into *line -- newline
+    // included, exactly as fgets() would leave it. Returns false only at EOF
+    // with nothing read.
+    //
+    // Exonerate's output is parsed with regexes anchored on a trailing "\n",
+    // so a line that does not arrive whole never matches and the hit on it is
+    // discarded without a word. A fixed 256-byte buffer made that happen for
+    // ordinary long sequence names.
+    static bool read_full_line(FILE *f, std::string *line);
 
     void local_alignment(map<string,string> *target_sequences, Fasta_entry *read, map<string,hit> *hits, bool is_local, bool is_dna);
     void local_alignment(Node *root, Fasta_entry *read, std::multimap<std::string,std::string> *good_hits, std::map<std::string,hit> *hits, bool is_local, bool is_dna, bool all_nodes=false);
