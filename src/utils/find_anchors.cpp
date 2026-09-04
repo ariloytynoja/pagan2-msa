@@ -360,7 +360,17 @@ void Find_anchors::define_tunnel(std::vector<Substring_hit> *hits,std::vector<in
     {
 //        cout<<it->start_site_1<<" "<<it->start_site_2<<" "<<it->length<<" "<<length1<<" "<<length2<<"\n";
         int i=0;
-        for(;i<it->length;i++)
+        // Bound the walk by index1/index2's own size, not just it->length:
+        // start_site_{1,2} are counts of non-gap characters (Exonerate
+        // searched the ungapped sequence), so a hit near the end of a
+        // sequence that carries internal gaps can have
+        // start_site_1+it->length exceed index1.size() even though it
+        // passed check_hits_order_conflict's clamp there (that clamp bounds
+        // against the GAPPED length, str1->length(), which is >= index1.size()
+        // whenever str1 contains any '-'). Without this, index1.at(...) here
+        // throws std::out_of_range and aborts the whole batch, the same
+        // failure mode as check_hits_order_conflict's own bug.
+        for(;i<it->length && it->start_site_1+i<(int)index1.size() && it->start_site_2+i<(int)index2.size();i++)
         {
             diagonals.at(index1.at(it->start_site_1+i)) = index2.at(it->start_site_2+i);
         }

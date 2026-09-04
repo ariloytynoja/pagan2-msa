@@ -259,6 +259,22 @@ public:
     Reads_aligner();
     void align(Node *root, Model_factory *mf,int count);
 
+    // Look up a target node by name, returning NULL when that name is not in
+    // this tree.  Exists so callers cannot repeat the map::end() dereference
+    // this replaced: nodes.find() was called at five sites here and its
+    // result used as nit->second without ever being compared to end(), which
+    // is undefined behaviour whenever the name is absent -- it does not
+    // reliably fault at the lookup, it yields a garbage Node* that crashes
+    // later somewhere else entirely.
+    static Node *find_target_node(const std::map<std::string,Node*> &nodes,
+                                  const std::string &name)
+    {
+        std::map<std::string,Node*>::const_iterator it = nodes.find(name);
+        if(it == nodes.end())
+            return 0;
+        return it->second;
+    }
+
     Node *get_global_root() { return global_root; }
 };
 }
