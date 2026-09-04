@@ -42,6 +42,12 @@ bool Mafft_alignment::test_executable()
     #if defined (__CYGWIN__)
     char path[200];
     int length = readlink("/proc/self/exe",path,200-1);
+    // readlink() returns -1 on failure (no /proc, or not readable) and never
+    // NUL-terminates; it also silently truncates a path that does not fit.
+    // path[-1] would be a write outside the buffer, so treat both as "no
+    // directory known here" and fall through to looking the program up on PATH.
+    if(length < 0 || length >= 200-1)
+        length = 0;
     path[length] = '\0';
 
     string epath = string(path).substr(0,length);
@@ -67,6 +73,12 @@ bool Mafft_alignment::test_executable()
 
     #else
     int length = readlink("/proc/self/exe",path,200-1);
+    // readlink() returns -1 on failure (no /proc, or not readable) and never
+    // NUL-terminates; it also silently truncates a path that does not fit.
+    // path[-1] would be a write outside the buffer, so treat both as "no
+    // directory known here" and fall through to looking the program up on PATH.
+    if(length < 0 || length >= 200-1)
+        length = 0;
     path[length] = '\0';
     epath = string(path).substr(0,length);
     if (epath.find("/")!=std::string::npos)
