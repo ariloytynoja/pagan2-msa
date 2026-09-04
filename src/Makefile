@@ -6,8 +6,11 @@
 UNAME    = $(shell uname)
 PWD      = /pagan
 
-CC       = /usr/bin/gcc-4.8
-CXX      = /usr/bin/g++-4.8
+# Overridable, and defaulting to whatever the system compiler is.  These were
+# hardcoded to /usr/bin/gcc-4.8 and /usr/bin/g++-4.8, which do not exist on any
+# current distribution, so a plain "make" failed before compiling anything.
+CC      ?= gcc
+CXX     ?= g++
 LEX      = flex
 YACC     = yacc
 CFLAGS   = -pipe -Wall -Wno-unused-parameter -Wno-unused -O2 -fopenmp 
@@ -17,7 +20,7 @@ YACCFLAGS= -d
 NCBIPATH = ../ncbi/GCC480-ReleaseMT64
 NCBIINC  = -I$(NCBIPATH)/inc -I$(NCBIPATH)/../include
 INCPATH  = -I../boost/include -I../curl/include -I. -I./utils -I./main -I/usr/include $(NCBIINC)
-LINK     = /usr/bin/g++-4.8
+LINK    ?= $(CXX)
 LFLAGS   = -g -static 
 NCBILIBS = -L../boost/lib -L../curl/lib -L$(NCBIPATH)/lib -lxblast-static -lxalgoblastdbindex-static -lcomposition_adjustment-static -lxalgodustmask-static -lxalgowinmask-static -lseqdb-static -lxobjutil-static -lxnetblast-static -lblastdb-static -lscoremat-static -ltables-static -lxconnect-static -lxobjmgr-static -lgenome_collection-static -lseqset-static -lseq-static -lseqcode-static -lsequtil-static -lpub-static -lmedline-static -lbiblio-static -lgeneral-static -lxser-static -lxutil-static -lxncbi-static -lpthread -ldl
 LIBS     = $(SUBLIBS)  -Wl,-rpath, -lboost_program_options -lboost_regex -lboost_thread -lboost_system -lgomp -lm ../curl/lib/libcurl.a -lz $(NCBILIBS)
@@ -130,6 +133,7 @@ OBJECTS       = main.o \
 		exonerate_queries.o \
 		log_output.o \
 		find_anchors.o \
+		external_anchors.o \
 		codon_translation.o \
 		input_output_parser.o \
 		mafft_alignment.o \
@@ -442,6 +446,13 @@ find_anchors.o: utils/find_anchors.cpp utils/find_anchors.h \
 		main/sequence.h \
 		utils/log_output.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o find_anchors.o utils/find_anchors.cpp
+
+external_anchors.o: utils/external_anchors.cpp utils/external_anchors.h \
+		utils/substring_hit.h \
+		utils/settings_handle.h \
+		utils/settings.h \
+		utils/log_output.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o external_anchors.o utils/external_anchors.cpp
 
 codon_translation.o: utils/codon_translation.cpp utils/codon_translation.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o codon_translation.o utils/codon_translation.cpp

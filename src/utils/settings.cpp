@@ -158,7 +158,22 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
         ("anchoring-threshold",po::value<float>()->default_value(1,"1.0"),"anchoring coverage threshold for skipping")
         ("use-prefix-anchors","use prefix approach to anchor alignment")
         ("prefix-hit-length", po::value<int>()->default_value(30), "prefix hit length for anchor")
+        ("anchor-file", po::value<string>(), "use pre-computed anchors from file: 'seq1 seq2 start1 start2 length [score]', 1-based nucleotide coordinates; pairs not listed are anchored normally")
         ("keep-temp-files","keep temporary files (mainly for debugging)")
+    ;
+
+    // Tunnel memory budget.  These used to sit in the NCBI-toolkit block, but
+    // node.cpp and viterbi_alignment.cpp read them unconditionally, so a build
+    // without the toolkit declared none of them and died on the first
+    // alignment with boost::bad_any_cast -- reading an option that does not
+    // exist yields an empty boost::any.  They have nothing to do with NCBI
+    // BLAST; they bound the DP tunnel regardless of who found the anchors.
+    boost::program_options::options_description tunnelmemory("Alignment memory options",100);
+    tunnelmemory.add_options()
+        ("memory-for-single-alignment", po::value<int>()->default_value(4000), "megabytes of memory allowed to use for a single alignment (using multiple threads may result mutiple concurrent alignment calculations)")
+        ("force-gap", "force gaps in poorly prealigned areas to reduce memory consumption when exceeding memory limits")
+        ("force-gap-threshold", po::value<int>()->default_value(40000), "min threshold size (=height*length | default=40000) for emply blocks in tunnel to be removed when exceeding memory limit")
+        ("force-gap-wide-tunnel", "use wide tunnel when removing blocks (possibly results in fragmented gaps)")
     ;
 
     boost::program_options::options_description exonerate("Fast placement options (Exonerate)",100);
@@ -184,10 +199,6 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
         ("blast-match-reward", po::value<int>()->default_value(-1), "match reward for BLAST (nucleic acids only, default value: 2)")
         ("blast-mismatch-penalty", po::value<int>()->default_value(999), "mismatch penalty for BLAST (nucleic acids only, default value: -3)")
         ("blast-scoring-matrix", po::value<string>()->default_value("BLOSUM62"), "scoring matrix for BLAST (amino acids only, possible values: BLOSUM45, BLOSUM50, BLOSUM62 (default), BLOSUM80, BLOSUM90)")
-        ("memory-for-single-alignment", po::value<int>()->default_value(4000), "megabytes of memory allowed to use for a single alignment (using multiple threads may result mutiple concurrent alignment calculations)")
-        ("force-gap", "force gaps in poorly prealigned areas to reduce memory consumption when exceeding memory limits")
-        ("force-gap-threshold", po::value<int>()->default_value(40000), "min threshold size (=height*length | default=40000) for emply blocks in tunnel to be removed when exceeding memory limit")
-        ("force-gap-wide-tunnel", "use wide tunnel when removing blocks (possibly results in fragmented gaps)")
     ;
 #else
     boost::program_options::options_description ncbitoolkit("",100);
@@ -291,12 +302,12 @@ int Settings::read_command_line_arguments(int argc, char *argv[])
     pd.add("config-file", 1);
 
     full_desc.add(minimal).add(help_update).add(generic).add(generic2).add(reads_alignment).add(reads_alignment2).add(reads_alignment3).add(pileup).add(reads_quality)
-            .add(anchoring).add(ncbitoolkit).add(exonerate).add(obscure).add(graph).add(model).add(tree_edit).add(alignment).add(output).add(debug).add(broken);
+            .add(anchoring).add(tunnelmemory).add(ncbitoolkit).add(exonerate).add(obscure).add(graph).add(model).add(tree_edit).add(alignment).add(output).add(debug).add(broken);
 
     max_desc.add(minimal).add(generic).add(generic2).add(reads_alignment).add(reads_alignment2).add(reads_alignment3).add(pileup).add(reads_quality)
-            .add(anchoring).add(ncbitoolkit).add(exonerate).add(obscure).add(model).add(graph).add(tree_edit).add(alignment).add(output).add(help_update);
+            .add(anchoring).add(tunnelmemory).add(ncbitoolkit).add(exonerate).add(obscure).add(model).add(graph).add(tree_edit).add(alignment).add(output).add(help_update);
 
-    desc.add(minimal).add(generic).add(reads_alignment).add(reads_alignment2).add(reads_quality).add(anchoring).add(ncbitoolkit).add(exonerate).add(pileup).add(model).add(tree_edit).add(alignment).add(help_update);
+    desc.add(minimal).add(generic).add(reads_alignment).add(reads_alignment2).add(reads_quality).add(anchoring).add(tunnelmemory).add(ncbitoolkit).add(exonerate).add(pileup).add(model).add(tree_edit).add(alignment).add(help_update);
 
     min_desc.add(minimal).add(generic).add(reads_alignment).add(help_update);
 

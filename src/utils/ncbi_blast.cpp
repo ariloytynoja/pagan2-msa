@@ -20,6 +20,8 @@
 
 #include "ncbi_blast.h"
 
+#ifdef NCBI_TOOLKIT
+
 USING_NCBI_SCOPE;
 USING_SCOPE(objects);
 using namespace ppa;
@@ -635,3 +637,4 @@ bool BankBlaster::isBestAlignReverse(string& query_id){
     return false;
 }
 
+#endif // NCBI_TOOLKIT
