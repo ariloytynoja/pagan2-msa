@@ -1,3 +1,7 @@
+v.1.60
+Option to provide an external anchors file. Multiple bug fixes by mmokrejs.
+
+
 v.1.53
 Now resolves (arbitrarily) multifurcating nodes. NCBI-anchoring by default.
 
