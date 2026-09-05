@@ -138,7 +138,10 @@ void Input_output_parser::parse_input_sequences(Fasta_reader *fr,vector<Fasta_en
     else
     {
         Log_output::write_out("\nError: No sequence file defined.\n",0);
-        Settings_handle::st.info();
+        // info_noexit(), not info(): the latter ends in exit(0), which would
+        // make the exit(1) below unreachable and report this failure to the
+        // caller as success.
+        Settings_handle::st.info_noexit();
 
         exit(1);
     }
@@ -300,7 +303,7 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
             else
             {
                 Log_output::write_out("\nError: No tree file defined. MAFFT and/or RAxML not found.\n",0);
-                Settings_handle::st.info();
+                Settings_handle::st.info_noexit();
 
                 exit(1);
             }
@@ -364,7 +367,7 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
             else
             {
                 Log_output::write_out("\nError: No tree file defined. MAFFT and/or BppDist not found.\n",0);
-                Settings_handle::st.info();
+                Settings_handle::st.info_noexit();
 
                 exit(1);
             }
@@ -428,7 +431,7 @@ Node *Input_output_parser::parse_input_tree(Fasta_reader *fr,vector<Fasta_entry>
             else
             {
                 Log_output::write_out("\nError: No tree file defined. MAFFT and/or FastTree not found.\n",0);
-                Settings_handle::st.info();
+                Settings_handle::st.info_noexit();
 
                 exit(1);
             }
