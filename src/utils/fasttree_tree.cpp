@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "utils/fasttree_tree.h"
+#include "utils/helper_probe.h"
 #include "utils/model_factory.h"
 #include <netdb.h>
 
@@ -29,6 +30,47 @@ using namespace ppa;
 #include <mach-o/dyld.h>
 #endif
 
+
+// FastTree given no input file reads the ALIGNMENT FROM STANDARD INPUT -- it
+// announces this itself, "Alignment: standard input". So a bare `fasttree`
+// never exits 0, and both ways it can end are wrong for a presence probe:
+//
+//   stdin closed  ->  reads EOF, has no alignment to build a tree from,
+//                     exits 1
+//   stdin open    ->  BLOCKS FOREVER waiting for one
+//
+// The second case is not hypothetical. Any parent that did not redirect its
+// own stdin -- an interactive shell, a pipeline, a job launcher, a test
+// harness -- hangs pagan2 inside this probe, before it has read a single
+// sequence. The `</dev/null` in the probes below is therefore load-bearing,
+// not tidiness.
+//
+// The first case is why the probe used to answer "FastTree is not available"
+// on machines where FastTree is installed and works: it demanded exit 0, a
+// status this invocation cannot produce. The previous code compensated with a
+// hard-coded `gethostname() == "wasabi2"` special case that accepted exit 1 on
+// that one host -- the same observation, confined to one machine.
+//
+// helper_was_found() replaces the exit-status comparison; see helper_probe.h
+// for why the shell's 127/126 is the part that does not depend on FastTree.
+
+// The FastTree executable to probe for and to run.
+//
+// Upstream distributes FastTree, FastTreeMP and FastTreeUPGMA; none of them is
+// called "fasttree", so the hard-coded name below finds a binary only where a
+// distribution has added a lowercase name or symlink. Naming it is also the
+// only way to CHOOSE: FastTreeMP is the OpenMP build, and FastTreeUPGMA
+// computes UPGMA rather than approximately-ML trees, which is a modelling
+// decision and not something to guess at by sniffing the filesystem.
+//
+// The default keeps today's behaviour exactly.
+static string fasttree_exec()
+{
+    if(Settings_handle::st.is("fasttree-exec"))
+        return Settings_handle::st.get("fasttree-exec").as<string>();
+
+    return "fasttree";
+}
 
 FastTree_tree::FastTree_tree()
 {
@@ -51,10 +93,10 @@ bool FastTree_tree::test_executable()
     if (epath.find("/")!=std::string::npos)
         epath = epath.substr(0,epath.rfind("/")+1);
     progpath = epath;
-    epath = epath+"fasttree >/dev/null 2>/dev/null";
+    epath = epath+fasttree_exec()+" </dev/null >/dev/null 2>/dev/null";
     int status = system(epath.c_str());
 
-    return WEXITSTATUS(status) == 0;
+    return helper_was_found(status);
 
     # else
 
@@ -83,30 +125,20 @@ bool FastTree_tree::test_executable()
 
     #endif
 
-    char hostname[1024];
-    hostname[1023] = '\0';
-    gethostname(hostname, 1023);
-
     progpath = epath;
-    epath = epath+"fasttree >/dev/null 2>/dev/null";
+    epath = epath+fasttree_exec()+" </dev/null >/dev/null 2>/dev/null";
     int status = system(epath.c_str());
 
-    if(WEXITSTATUS(status) == 0)
-        return true;
-
-    if(WEXITSTATUS(status) == 1 && strcmp(hostname, "wasabi2")==0)
+    if(helper_was_found(status))
         return true;
 
     progpath = "";
-    status = system("fasttree >/dev/null 2>/dev/null");
-
-    if(WEXITSTATUS(status) == 1 && strcmp(hostname, "wasabi2")==0)
-        return true;
+    status = system((fasttree_exec()+" </dev/null >/dev/null 2>/dev/null").c_str());
 
     if(Settings_handle::st.is("docker"))
         return true;
 
-    return WEXITSTATUS(status) == 0;
+    return helper_was_found(status);
 
     #endif
 }
@@ -148,7 +180,7 @@ string FastTree_tree::infer_phylogeny(std::vector<Fasta_entry> *sequences,bool i
     f_output.close();
 
     stringstream command;
-    command << progpath<<"fasttree -quiet -nopr -nosupport ";
+    command << progpath<<fasttree_exec()<<" -quiet -nopr -nosupport ";
     if(is_protein)
         command << f_name.str() << " 2>/dev/null";
     else
