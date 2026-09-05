@@ -54,6 +54,24 @@ using namespace ppa;
 // helper_was_found() replaces the exit-status comparison; see helper_probe.h
 // for why the shell's 127/126 is the part that does not depend on FastTree.
 
+// The FastTree executable to probe for and to run.
+//
+// Upstream distributes FastTree, FastTreeMP and FastTreeUPGMA; none of them is
+// called "fasttree", so the hard-coded name below finds a binary only where a
+// distribution has added a lowercase name or symlink. Naming it is also the
+// only way to CHOOSE: FastTreeMP is the OpenMP build, and FastTreeUPGMA
+// computes UPGMA rather than approximately-ML trees, which is a modelling
+// decision and not something to guess at by sniffing the filesystem.
+//
+// The default keeps today's behaviour exactly.
+static string fasttree_exec()
+{
+    if(Settings_handle::st.is("fasttree-exec"))
+        return Settings_handle::st.get("fasttree-exec").as<string>();
+
+    return "fasttree";
+}
+
 FastTree_tree::FastTree_tree()
 {
 }
@@ -75,7 +93,7 @@ bool FastTree_tree::test_executable()
     if (epath.find("/")!=std::string::npos)
         epath = epath.substr(0,epath.rfind("/")+1);
     progpath = epath;
-    epath = epath+"fasttree </dev/null >/dev/null 2>/dev/null";
+    epath = epath+fasttree_exec()+" </dev/null >/dev/null 2>/dev/null";
     int status = system(epath.c_str());
 
     return helper_was_found(status);
@@ -108,14 +126,14 @@ bool FastTree_tree::test_executable()
     #endif
 
     progpath = epath;
-    epath = epath+"fasttree </dev/null >/dev/null 2>/dev/null";
+    epath = epath+fasttree_exec()+" </dev/null >/dev/null 2>/dev/null";
     int status = system(epath.c_str());
 
     if(helper_was_found(status))
         return true;
 
     progpath = "";
-    status = system("fasttree </dev/null >/dev/null 2>/dev/null");
+    status = system((fasttree_exec()+" </dev/null >/dev/null 2>/dev/null").c_str());
 
     if(Settings_handle::st.is("docker"))
         return true;
@@ -162,7 +180,7 @@ string FastTree_tree::infer_phylogeny(std::vector<Fasta_entry> *sequences,bool i
     f_output.close();
 
     stringstream command;
-    command << progpath<<"fasttree -quiet -nopr -nosupport ";
+    command << progpath<<fasttree_exec()<<" -quiet -nopr -nosupport ";
     if(is_protein)
         command << f_name.str() << " 2>/dev/null";
     else
