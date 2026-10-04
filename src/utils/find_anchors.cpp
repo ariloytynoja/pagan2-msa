@@ -289,28 +289,42 @@ void Find_anchors::check_hits_order_conflict(std::string *seq1,std::string *seq2
 
     sort(hits->begin(),hits->end(),Find_anchors::sort_by_start_site_1);
 
-    it1 = hits->begin();
-    vector<Substring_hit>::iterator it2 = it1;
-    it2++;
-    for(;it1!=hits->end() && it2!=hits->end();)
+    // Keep the hits co-linear: sorted by start_site_1, their start_site_2
+    // must increase too, or define_tunnel() builds a non-monotonic tunnel
+    // and Tunnel_matrix throws. Of an adjacent pair that crosses, the
+    // lower-scoring hit goes. One pass is not enough: when the EARLIER hit
+    // of a pair goes, the survivor is never compared with the hit before
+    // it (A,B,C with only B,C crossing loses B and keeps A,C, which may
+    // cross as well). Repeat the pass until nothing crosses; where one pass
+    // already left the hits co-linear, the second changes nothing.
+    bool crossed = true;
+    while(crossed)
     {
-        if(it1->start_site_2 > it2->start_site_2)
+        crossed = false;
+        it1 = hits->begin();
+        vector<Substring_hit>::iterator it2 = it1;
+        it2++;
+        for(;it1!=hits->end() && it2!=hits->end();)
         {
-            if(it1->score < it2->score)
+            if(it1->start_site_2 > it2->start_site_2)
             {
-                hits->erase(it1);
-                it2 = it1;
-                it2++;
+                crossed = true;
+                if(it1->score < it2->score)
+                {
+                    it1 = hits->erase(it1);
+                    it2 = it1;
+                    it2++;
+                }
+                else
+                {
+                    hits->erase(it2);
+                    it2 = it1;
+                    it2++;
+                }
+                continue;
             }
-            else
-            {
-                hits->erase(it2);
-                it2 = it1;
-                it2++;
-            }
-            continue;
+            it1++;it2++;
         }
-        it1++;it2++;
     }
 
 
@@ -465,6 +479,21 @@ void Find_anchors::define_tunnel(std::vector<Substring_hit> *hits,std::vector<in
 
         lower_bound->insert(lower_bound->begin(),y);
     }
+
+    // Tunnel_matrix requires both bounds to be monotonically increasing.
+    // Co-linear hits (check_hits_order_conflict()) give that; anything else
+    // handed in here is repaired the way define_tunnel_with_overlapping_hits()
+    // does it ("must not go zigzag"), by WIDENING only: the start becomes the
+    // running minimum from the right, the end the running maximum from the
+    // left, so no cell of the raw tunnel -- and no anchor -- is cut out.
+    // Monotonic bounds are left unchanged.
+    for(int i=(int)upper_bound->size()-2;i>=0;i--)
+        if(upper_bound->at(i) > upper_bound->at(i+1))
+            upper_bound->at(i) = upper_bound->at(i+1);
+
+    for(int i=1;i<(int)lower_bound->size();i++)
+        if(lower_bound->at(i) < lower_bound->at(i-1))
+            lower_bound->at(i) = lower_bound->at(i-1);
 
     /*
     if(Settings::noise>0)
