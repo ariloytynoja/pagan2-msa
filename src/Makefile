@@ -190,7 +190,8 @@ FORCE:
 
 ####### Compile
 
-main.o: main.cpp utils/settings.h \
+main.o: main.cpp utils/process_seed.h \
+		utils/settings.h \
 		utils/settings_handle.h \
 		utils/log_output.h \
 		utils/input_output_parser.h \
