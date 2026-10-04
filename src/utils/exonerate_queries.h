@@ -56,8 +56,8 @@ struct hit {
 class Exonerate_queries
 {
     static bool better (hit i,hit j) { return (i.score>j.score); }
-
-    void read_output_line(map<string,multimap<string,hit> > *all_hits, string line);
+    void read_sugar_hits(FILE *fpipe, vector<hit> *hits);
+    void add_output_hit(map<string,multimap<string,hit> > *all_hits, const hit& h);
     void find_hits_for_queries(map<string,multimap<string,hit> > *all_hits, vector<Fasta_entry> *reads, map<string,multimap<string,hit> > *best_hits, bool is_local=true);
 
     bool split_sugar_string(const std::string& row,hit *h);
@@ -78,6 +78,12 @@ class Exonerate_queries
 public:
     Exonerate_queries();
     bool test_executable();
+
+    // The order exonerate's hits are put in, and the fold of one run's hits
+    // into one hit per (query, target). Neither depends on the order the
+    // hits were printed in; src/test_exonerate_fold_hits.cpp pins that.
+    static bool canonical_order (const hit& a,const hit& b);
+    static vector<hit> fold_hits (const vector<hit>& hits);
 
     // Read one complete line from *f, however long, into *line -- newline
     // included, exactly as fgets() would leave it. Returns false only at EOF

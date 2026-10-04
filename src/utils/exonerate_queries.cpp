@@ -500,14 +500,15 @@ void Exonerate_queries::preselect_targets(map<string,string> *target_sequences, 
 
     // read exonerate output, summing the multiple hit scores
 
-    string line;
     map<string,multimap<string,hit> > all_hits;
 
-    while ( read_full_line( fpipe, &line ))
-    {
-        this->read_output_line(&all_hits,line);
-    }
+    vector<hit> sugar_hits;
+    this->read_sugar_hits(fpipe,&sugar_hits);
     pclose(fpipe);
+
+    vector<hit> folded = Exonerate_queries::fold_hits(sugar_hits);
+    for(vector<hit>::iterator hi = folded.begin(); hi != folded.end(); hi++)
+        this->add_output_hit(&all_hits,*hi);
 
     if(!Settings_handle::st.is("keep-temp-files"))
         this->delete_files(r);
@@ -540,52 +541,114 @@ void Exonerate_queries::preselect_targets(map<string,string> *target_sequences, 
 }
 
 
-void Exonerate_queries::read_output_line(map<string,multimap<string,hit> > *all_hits, string line)
+// exonerate does not print the hits of a run in a reproducible order: on one
+// unchanged query and target file, exonerate 2.4.0 printed the same set of
+// sugar lines in four different orders in twelve runs. Every reader of them
+// here is order-sensitive -- the hits on one target are folded keeping the
+// first of two opposite-strand hits that tie, `hit_names` keeps first-seen
+// order and std::sort is not stable -- so one batch of reads could be placed
+// differently, and aligned differently, from one run to the next. Reading all
+// hits first and putting them in this order makes the result a function of
+// the hits alone: fold_hits() below no longer depends on the order at all,
+// and the targets it returns, best first, are ranked in this order.
+bool Exonerate_queries::canonical_order(const hit& a,const hit& b)
 {
-    hit h;
-    bool valid = this->split_sugar_string(string(line),&h);
+    if(a.score != b.score)
+        return a.score > b.score;
+    if(a.query != b.query)
+        return a.query < b.query;
+    if(a.node != b.node)
+        return a.node < b.node;
+    if(a.q_start != b.q_start)
+        return a.q_start < b.q_start;
+    if(a.q_end != b.q_end)
+        return a.q_end < b.q_end;
+    if(a.t_start != b.t_start)
+        return a.t_start < b.t_start;
+    if(a.t_end != b.t_end)
+        return a.t_end < b.t_end;
+    if(a.q_strand != b.q_strand)
+        return a.q_strand < b.q_strand;
+    return a.t_strand < b.t_strand;
+}
 
-    if(valid)
+void Exonerate_queries::read_sugar_hits(FILE *fpipe, vector<hit> *hits)
+{
+    string line;
+    while ( read_full_line( fpipe, &line ))
     {
+        hit h;
+        if( this->split_sugar_string(line,&h) )
+            hits->push_back(h);
+    }
+    sort(hits->begin(), hits->end(), Exonerate_queries::canonical_order);
+}
 
-        map<string,multimap<string,hit> >::iterator iter = all_hits->find(h.query);
-
-        if( iter != all_hits->end() )
+// One hit per (query, target): the hits on each strand pair are summed
+// (score) and spanned (start/end), and the strand pair with the highest sum
+// is kept, ties going to the pair first in canonical_order(). Sums, minima
+// and maxima do not depend on the order the hits arrive in, so neither does
+// this. It is what the old in-print-order fold produced whenever a target's
+// hits on one strand pair were read before those on the other; read
+// interleaved, that fold could keep a single opposite-strand hit that beat a
+// partial sum (+5, -9, +6 kept -9 where +5 and +6 sum to 11).
+vector<hit> Exonerate_queries::fold_hits(const vector<hit>& hits)
+{
+    map<string,hit> by_strand;
+    for(vector<hit>::const_iterator it = hits.begin(); it != hits.end(); it++)
+    {
+        string key = it->query+'\x1f'+it->node+'\x1f'+it->q_strand+it->t_strand;
+        map<string,hit>::iterator f = by_strand.find(key);
+        if( f == by_strand.end() )
         {
-
-            multimap<string,hit>::iterator iter2 = iter->second.find(h.node);
-
-            if( iter2 != iter->second.end() )
-            {
-                if(iter2->second.t_strand == h.t_strand && iter2->second.q_strand == h.q_strand)
-                {
-                    iter2->second.score += h.score;
-
-                    if(iter2->second.q_start > h.q_start)
-                        iter2->second.q_start = h.q_start;
-                    if(iter2->second.q_end < h.q_end)
-                        iter2->second.q_end = h.q_end;
-                    if(iter2->second.t_start > h.t_start)
-                        iter2->second.t_start = h.t_start;
-                    if(iter2->second.t_end < h.t_end)
-                        iter2->second.t_end = h.t_end;
-                }
-                else if(iter2->second.score < h.score)
-                {
-                    iter2->second = h;
-                }
-            }
-            else
-            {
-                iter->second.insert( make_pair(h.node, h) );
-            }
+            by_strand.insert( make_pair(key, *it) );
+            continue;
         }
-        else
-        {
-            multimap<string,hit> new_hit;
-            new_hit.insert( make_pair(h.node, h) );
-            all_hits->insert( make_pair(h.query, new_hit ) );
-        }
+        hit &s = f->second;
+        s.score += it->score;
+        if(s.q_start > it->q_start)
+            s.q_start = it->q_start;
+        if(s.q_end < it->q_end)
+            s.q_end = it->q_end;
+        if(s.t_start > it->t_start)
+            s.t_start = it->t_start;
+        if(s.t_end < it->t_end)
+            s.t_end = it->t_end;
+    }
+
+    map<string,hit> by_target;
+    for(map<string,hit>::iterator it = by_strand.begin(); it != by_strand.end(); it++)
+    {
+        const hit &g = it->second;
+        string key = g.query+'\x1f'+g.node;
+        map<string,hit>::iterator f = by_target.find(key);
+        if( f == by_target.end() )
+            by_target.insert( make_pair(key, g) );
+        else if( canonical_order(g, f->second) )
+            f->second = g;
+    }
+
+    vector<hit> folded;
+    for(map<string,hit>::iterator it = by_target.begin(); it != by_target.end(); it++)
+        folded.push_back(it->second);
+    sort(folded.begin(), folded.end(), Exonerate_queries::canonical_order);
+    return folded;
+}
+
+// `h` is already folded (fold_hits()): one hit per (query, target).
+void Exonerate_queries::add_output_hit(map<string,multimap<string,hit> > *all_hits, const hit& h)
+{
+    map<string,multimap<string,hit> >::iterator iter = all_hits->find(h.query);
+
+    if( iter != all_hits->end() )
+    {
+        iter->second.insert( make_pair(h.node, h) );
+    }
+    else
+    {
+        multimap<string,hit> new_hit;
+        new_hit.insert( make_pair(h.node, h) );
+        all_hits->insert( make_pair(h.query, new_hit ) );
     }
 }
 
@@ -727,46 +790,20 @@ void Exonerate_queries::local_alignment(map<string,string> *target_sequences, Fa
 
     // read exonerate output, summing the multiple hit scores
 
-    string line;
     map<string,hit> all_hits;
     vector<string> hit_names;
 
-    while ( read_full_line( fpipe, &line ))
-    {
-        hit h;
-        bool valid = split_sugar_string(string(line),&h);
-
-        if(valid)
-        {
-            map<string,hit>::iterator iter = all_hits.find(h.node);
-            if( iter != all_hits.end() )
-            {
-                if(iter->second.t_strand == h.t_strand && iter->second.q_strand == h.q_strand)
-                {
-                    iter->second.score += h.score;
-
-                    if(iter->second.q_start > h.q_start)
-                        iter->second.q_start = h.q_start;
-                    if(iter->second.q_end < h.q_end)
-                        iter->second.q_end = h.q_end;
-                    if(iter->second.t_start > h.t_start)
-                        iter->second.t_start = h.t_start;
-                    if(iter->second.t_end < h.t_end)
-                        iter->second.t_end = h.t_end;
-                }
-                else if(iter->second.score < h.score)
-                {
-                    iter->second = h;
-                }
-            }
-            else
-            {
-                all_hits.insert( make_pair(h.node, h) );
-                hit_names.push_back(h.node);
-            }
-        }
-    }
+    vector<hit> sugar_hits;
+    this->read_sugar_hits(fpipe,&sugar_hits);
     pclose(fpipe);
+
+    // One query: fold_hits() leaves one hit per target, best first.
+    vector<hit> folded = Exonerate_queries::fold_hits(sugar_hits);
+    for(vector<hit>::iterator hi = folded.begin(); hi != folded.end(); hi++)
+    {
+        all_hits.insert( make_pair(hi->node, *hi) );
+        hit_names.push_back(hi->node);
+    }
 
 
     Log_output::write_out("Exonerate_reads: "+read->name+" has "+Log_output::itos(hit_names.size())+" hits\n",2);
@@ -901,46 +938,20 @@ void Exonerate_queries::local_alignment(Node *root, Fasta_entry *read, multimap<
 
     // read exonerate output, summing the multiple hit scores
 
-    string line;
     map<string,hit> all_hits;
     vector<string> hit_names;
 
-    while ( read_full_line( fpipe, &line ))
-    {
-        hit h;
-        bool valid = split_sugar_string(string(line),&h);
-
-        if(valid)
-        {
-            map<string,hit>::iterator iter = all_hits.find(h.node);
-            if( iter != all_hits.end() )
-            {
-                if(iter->second.t_strand == h.t_strand && iter->second.q_strand == h.q_strand)
-                {
-                    iter->second.score += h.score;
-
-                    if(iter->second.q_start > h.q_start)
-                        iter->second.q_start = h.q_start;
-                    if(iter->second.q_end < h.q_end)
-                        iter->second.q_end = h.q_end;
-                    if(iter->second.t_start > h.t_start)
-                        iter->second.t_start = h.t_start;
-                    if(iter->second.t_end < h.t_end)
-                        iter->second.t_end = h.t_end;
-                }
-                else if(iter->second.score < h.score)
-                {
-                    iter->second = h;
-                }
-            }
-            else
-            {
-                all_hits.insert( make_pair(h.node, h) );
-                hit_names.push_back(h.node);
-            }
-        }
-    }
+    vector<hit> sugar_hits;
+    this->read_sugar_hits(fpipe,&sugar_hits);
     pclose(fpipe);
+
+    // One query: fold_hits() leaves one hit per target, best first.
+    vector<hit> folded = Exonerate_queries::fold_hits(sugar_hits);
+    for(vector<hit>::iterator hi = folded.begin(); hi != folded.end(); hi++)
+    {
+        all_hits.insert( make_pair(hi->node, *hi) );
+        hit_names.push_back(hi->node);
+    }
 
 
     Log_output::write_out("Exonerate_reads: "+read->name+" has "+Log_output::itos(hit_names.size())+" hits\n",2);
@@ -1055,18 +1066,8 @@ void Exonerate_queries::local_pairwise_alignment(string *str1,string *str2,vecto
 
     // read exonerate output, summing the multiple hit scores
 
-    string line;
     vector<hit> best_hits;
-
-    while ( read_full_line( fpipe, &line ))
-    {
-//        cout<<line;
-        hit h;
-        bool valid = split_sugar_string(string(line),&h);
-
-        if(valid)
-            best_hits.push_back( h);
-    }
+    this->read_sugar_hits(fpipe,&best_hits);
     pclose(fpipe);
 
 
