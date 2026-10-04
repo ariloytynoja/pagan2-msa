@@ -418,6 +418,7 @@ check_version.o: utils/check_version.cpp utils/check_version.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o check_version.o utils/check_version.cpp
 
 exonerate_queries.o: utils/exonerate_queries.cpp utils/exonerate_queries.h \
+		utils/child_pipe.h \
 		utils/fasta_entry.h \
 		utils/substring_hit.h \
 		main/node.h \
