@@ -30,7 +30,26 @@
 using namespace std;
 using namespace ppa;
 
-Reads_aligner::Reads_aligner(){}
+Reads_aligner::Reads_aligner() : scoring_model_mf(0), scoring_model_distance(-1) {}
+
+Evol_model *Reads_aligner::query_scoring_model(Model_factory *mf)
+{
+    double distance = Settings_handle::st.get("query-distance").as<float>();
+    distance += 0.001;
+
+    if( !scoring_model || mf != scoring_model_mf || distance != scoring_model_distance )
+    {
+        // Constructed in place from alignment_model()'s return value. An
+        // Evol_model must never be COPIED: its implicit copy constructor
+        // copies the raw matrix pointers, and the copy's destructor then
+        // frees them a second time. The call sites this replaces relied on
+        // the same elision.
+        scoring_model.reset( new Evol_model( mf->alignment_model(distance) ) );
+        scoring_model_mf = mf;
+        scoring_model_distance = distance;
+    }
+    return scoring_model.get();
+}
 
 void Reads_aligner::align(Node *root, Model_factory *mf, int count)
 {
@@ -2403,7 +2422,7 @@ double Reads_aligner::query_match_score(Node *node, Fasta_entry *query, Model_fa
     {
 
         // For scoring (below)
-        Evol_model model = mf->alignment_model(r_dist+0.001);
+        Evol_model &model = *this->query_scoring_model(mf);
 
         int matching = 0;
         int aligned = 0;
@@ -3549,7 +3568,7 @@ double Reads_aligner::read_match_score(Node *node, Fasta_entry *read, Model_fact
     {
 
         // For scoring (below)
-        Evol_model model = mf->alignment_model(r_dist+0.001);
+        Evol_model &model = *this->query_scoring_model(mf);
 
         int matching = 0;
         int aligned = 0;
@@ -3738,7 +3757,7 @@ void Reads_aligner::do_upwards_search(Node *root, Fasta_entry *read, Model_facto
     global_root = root;
 
     double r_dist = Settings_handle::st.get("query-distance").as<float>();
-    Evol_model model = mf->alignment_model(r_dist+0.001);
+    Evol_model &model = *this->query_scoring_model(mf);
 
     Node * current_root = root;
     string previous_hit = "";
@@ -3920,7 +3939,7 @@ void Reads_aligner::do_upwards_search(Node *root, vector<Fasta_entry> *reads, Mo
     global_root = root;
 
     double r_dist = Settings_handle::st.get("query-distance").as<float>();
-    Evol_model model = mf->alignment_model(r_dist+0.001);
+    Evol_model &model = *this->query_scoring_model(mf);
 
 
     for(int i=0;i<(int)reads->size();i++)

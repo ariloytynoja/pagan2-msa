@@ -22,6 +22,7 @@
 #define READS_ALIGNER_H
 
 #include <vector>
+#include <memory>
 #include "utils/settings.h"
 #include "utils/settings_handle.h"
 #include "utils/model_factory.h"
@@ -55,6 +56,20 @@ class Reads_aligner
     Node *global_root;
     map<string,string> codon_to_aa;
     map<string,string> aa_to_codon;
+
+    // The model a read is SCORED with against a node is built at the fixed
+    // "query-distance" (+0.001), which nothing changes during a run. It is
+    // built once per Model_factory and distance and reused. Rebuilding it at
+    // every call was most of the run time: a codon model has a 1892-symbol
+    // alphabet (61 sense codons, NNN and every ambiguity pair), so each build
+    // allocates ~71 MB and computes ~10.7 M cells, each with a log().
+    // Assumes what holds today: one Model_factory per run reaches this
+    // Reads_aligner (the cache is keyed by its address and the distance), and
+    // read placement is single-threaded (the returned model is shared).
+    std::unique_ptr<Evol_model> scoring_model;
+    Model_factory *scoring_model_mf;
+    double scoring_model_distance;
+    Evol_model *query_scoring_model(Model_factory *mf);
 
     void pileup_alignment(Node *root, vector<Fasta_entry> *reads, Model_factory *mf, int count);
     void translated_pileup_alignment(Node *root, vector<Fasta_entry> *reads, Model_factory *mf, int count);
