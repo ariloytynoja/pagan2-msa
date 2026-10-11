@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "exonerate_queries.h"
+#include "utils/tool_probe.h"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -84,7 +85,20 @@ bool Exonerate_queries::test_executable()
     epath = epath+"exonerate.exe > /dev/null 2>/dev/null";
     status = system(epath.c_str());
 
+    if(WEXITSTATUS(status) == 1)
+        return true;
+
+    // Upstream's probe, unchanged. The backticks are not a typo: a command
+    // consisting only of a substitution takes the substitution's exit
+    // status, so this does test exonerate's.
+    exoneratepath = "";
+    status = system("`exonerate  >/dev/null 2>/dev/null`");
+
+    return WEXITSTATUS(status) == 1;
+
     #else
+
+    (void)status;               // the non-Cygwin path runs nothing to test
 
     char path[200];
     string epath;
@@ -112,19 +126,14 @@ bool Exonerate_queries::test_executable()
 
     #endif
 
-    exoneratepath = epath;
-    epath = epath+"exonerate >/dev/null 2>/dev/null";
-    status = system(epath.c_str());
+    // Look for exonerate; do not RUN it -- see tool_probe.h. This is paid PER
+    // PAIRWISE ALIGNMENT (viterbi_alignment.cpp constructs an
+    // Exonerate_queries inside the alignment path), so the two system(3)
+    // calls it replaces were two thirds of every exonerate this program
+    // starts. The answer is memoised, so the repeat calls cost nothing at all.
+    return ppa::find_tool(epath, "exonerate", &exoneratepath);
 
     #endif
-
-    if(WEXITSTATUS(status) == 1)
-        return true;
-
-    exoneratepath = "";
-    status = system("`exonerate  >/dev/null 2>/dev/null`");
-
-    return WEXITSTATUS(status) == 1;
 }
 
 bool Exonerate_queries::split_sugar_string(const string& row,hit *h)
