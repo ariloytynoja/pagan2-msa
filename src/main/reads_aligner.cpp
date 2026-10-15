@@ -3661,40 +3661,35 @@ bool Reads_aligner::correct_sites_index(Node *current_root, string ref_node_name
 
         Sequence *parent_sequence = current_parent->get_sequence();
 
+        // Site k of the old child moves to k + sites_index[0] + ... +
+        // sites_index[k] in current_root: the sum runs over EVERY old child
+        // site up to k, whether the parent points at it or not. The parent
+        // does not point at the child's own insertion columns (those are
+        // "corrected later"), and a node made for an earlier query of this
+        // run has such columns -- so summing only at the sites the parent
+        // points at dropped the new columns placed next to them, every later
+        // parent index pointed too early, that clade was shifted against the
+        // rest of the alignment and its last columns fell off the 3' end.
         index_delta = 0;
-        int first=0;
-        for(int j=1; j<parent_sequence->sites_length(); j++)
-        {
-            Site *parent_site = parent_sequence->get_site_at(j);
-
-            if(is_left_child && parent_site->get_children()->left_index > 0)
-            {
-                first = parent_site->get_children()->left_index;
-                break;
-            }
-            else if(!is_left_child && parent_site->get_children()->right_index > 0)
-            {
-                first = parent_site->get_children()->right_index;
-                break;
-            }
-        }
-
-        for(int j=0;j<first;j++)
-            index_delta += sites_index.at(j);
+        int summed_to = -1;
 
         for(int j=1; j<parent_sequence->sites_length(); j++)
         {
             Site *parent_site = parent_sequence->get_site_at(j);
 
+            int *child_index = 0;
             if(is_left_child && parent_site->get_children()->left_index >= 0)
-            {
-                index_delta += sites_index.at(parent_site->get_children()->left_index);
-                parent_site->get_children()->left_index += index_delta;
-            }
+                child_index = &parent_site->get_children()->left_index;
             else if(!is_left_child && parent_site->get_children()->right_index >= 0)
+                child_index = &parent_site->get_children()->right_index;
+
+            if(child_index)
             {
-                index_delta += sites_index.at(parent_site->get_children()->right_index);
-                parent_site->get_children()->right_index += index_delta;
+                for(int k=summed_to+1; k<=*child_index; k++)
+                    index_delta += sites_index.at(k);
+                if(*child_index > summed_to)
+                    summed_to = *child_index;
+                *child_index += index_delta;
             }
         }
 
