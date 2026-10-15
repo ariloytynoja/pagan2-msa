@@ -64,6 +64,15 @@ void Input_output_parser::parse_input_sequences(Fasta_reader *fr,vector<Fasta_en
         exit(1);
     }
 
+    // Without a reference alignment the first query IS the reference, so the
+    // queries cannot be aligned one at a time against it.
+    if(Settings_handle::st.is("independent-queries") &&
+            !( Settings_handle::st.is("ref-seqfile") && Settings_handle::st.is("queryfile") ) )
+    {
+        Log_output::write_out("Incorrect command: '--independent-queries' requires a reference alignment ('--ref-seqfile') and queries ('--queryfile').\nExiting.\n\n",0);
+        exit(1);
+    }
+
     if(Settings_handle::st.is("seqfile"))
     {
         string seqfile =  Settings_handle::st.get("seqfile").as<string>();

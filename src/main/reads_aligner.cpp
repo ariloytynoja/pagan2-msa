@@ -34,6 +34,34 @@ Reads_aligner::Reads_aligner(){}
 
 void Reads_aligner::align(Node *root, Model_factory *mf, int count)
 {
+    vector<Fasta_entry> reads;
+    Reads_aligner::read_queries(&reads);
+
+    this->align(root,mf,count,&reads);
+}
+
+void Reads_aligner::read_queries(vector<Fasta_entry> *queries)
+{
+    string file = Settings_handle::st.get("queryfile").as<string>();
+
+    Log_output::write_header("Aligning reads ",0);
+
+    Fasta_reader fr;
+    Log_output::write_out("Reads data file: "+file+"\n",1);
+
+    try
+    {
+        fr.read(file, *queries, true);
+        fr.remove_gaps(queries);
+    }
+    catch (ppa::IOException& e) {
+        Log_output::write_out("Error reading the reads file '"+file+"'.\nExiting.\n\n",0);
+        exit(1);
+    }
+}
+
+void Reads_aligner::align(Node *root, Model_factory *mf, int count, vector<Fasta_entry> *queries)
+{
 
     // Handle also the first one correctly
     //
@@ -44,23 +72,8 @@ void Reads_aligner::align(Node *root, Model_factory *mf, int count)
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
-    string file = Settings_handle::st.get("queryfile").as<string>();
-
-    Log_output::write_header("Aligning reads ",0);
-
+    vector<Fasta_entry> &reads = *queries;
     Fasta_reader fr;
-    vector<Fasta_entry> reads;
-    Log_output::write_out("Reads data file: "+file+"\n",1);
-
-    try
-    {
-        fr.read(file, reads, true);
-        fr.remove_gaps(&reads);
-    }
-    catch (ppa::IOException& e) {
-        Log_output::write_out("Error reading the reads file '"+file+"'.\nExiting.\n\n",0);
-        exit(1);
-    }
 
     int data_type = fr.check_sequence_data_type(&reads);
     bool is_dna = data_type == Model_factory::dna;

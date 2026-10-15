@@ -45,6 +45,15 @@ public:
     bool is(std::string name) { return vm.count(name); }
     const boost::program_options::variable_value & get(const std::string & name) const { return vm[name]; }
 
+    // Give a string option a new value, as if it had been on the command
+    // line. --independent-queries uses it to point each query's process at
+    // its own "outfile".
+    void set_string(const std::string & name, const std::string & value)
+    {
+        vm.erase(name);
+        vm.insert(std::make_pair(name, boost::program_options::variable_value(boost::any(value), false)));
+    }
+
     void help();
     void help_all();
     void info();

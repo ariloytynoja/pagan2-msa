@@ -259,6 +259,13 @@ public:
     Reads_aligner();
     void align(Node *root, Model_factory *mf,int count);
 
+    // The two halves of align(): read and degap the queries of --queryfile
+    // (exits on a read error), then place and align a given set of them.
+    // --independent-queries reads the file once and calls the second for
+    // each query alone.
+    static void read_queries(vector<Fasta_entry> *queries);
+    void align(Node *root, Model_factory *mf, int count, vector<Fasta_entry> *queries);
+
     // Look up a target node by name, returning NULL when that name is not in
     // this tree.  Exists so callers cannot repeat the map::end() dereference
     // this replaced: nodes.find() was called at five sites here and its
