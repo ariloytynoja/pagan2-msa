@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include <vector>
 #include <unistd.h>
 #include "utils/bppancestors.h"
@@ -41,7 +42,30 @@ using namespace ppa;
 
 BppAncestors::BppAncestors() {}
 
+bool BppAncestors::ancestors_requested()
+{
+    return Settings_handle::st.is("events") || Settings_handle::st.is("output-ancestors")
+            || Settings_handle::st.is("ancestors") || Settings_handle::st.is("xml")
+            || Settings_handle::st.is("xml-nhx");
+}
+
+// The probe runs bppancestor through system(3) -- a shell and bppancestor
+// itself, twice when it is not beside this binary -- so its answer is kept for
+// the process: the first call asks, every later one (and every process forked
+// after it) reuses the answer and the directory it was found in. C++11
+// initialises the function-local static once, also under threads.
 bool BppAncestors::test_executable()
+{
+    static const std::pair<bool, std::string> answer = [] {
+        BppAncestors probe;
+        bool available = probe.probe_executable();
+        return std::make_pair(available, probe.bppdistpath);
+    }();
+    bppdistpath = answer.second;
+    return answer.first;
+}
+
+bool BppAncestors::probe_executable()
 {
 
     #if defined (__CYGWIN__)

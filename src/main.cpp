@@ -28,6 +28,7 @@
 #include "utils/fasta_reader.h"
 #include "main/node.h"
 #include "utils/model_factory.h"
+#include "utils/bppancestors.h"
 #include "main/reads_aligner.h"
 
 #ifdef __MACH__
@@ -79,6 +80,13 @@ int main(int argc, char *argv[])
     }
 
     Log_output::open_stream();
+
+    // Whether bppancestor can be run is asked HERE, once, when ancestors are
+    // wanted: the answer is kept for the process (BppAncestors::
+    // test_executable()), so every alignment written later -- and every
+    // process forked from this one -- reuses it instead of asking again.
+    if( BppAncestors::ancestors_requested() && not Settings_handle::st.is("no-bppancestors") )
+        BppAncestors().test_executable();
 
 
     if(!Settings_handle::st.is("silent"))

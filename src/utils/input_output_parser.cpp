@@ -583,13 +583,17 @@ void Input_output_parser::output_aligned_sequences(Fasta_reader *fr,std::vector<
         else if(this->warn_tree_change)
             Log_output::write_out("Modified guidetree file: "+outfile+".tre\n",0);
 
-        bool do_ancestors = Settings_handle::st.is("events") || Settings_handle::st.is("output-ancestors") || Settings_handle::st.is("ancestors")
-                || Settings_handle::st.is("xml") || Settings_handle::st.is("xml-nhx");
+        bool do_ancestors = BppAncestors::ancestors_requested();
 
+        // The probe LAST: test_executable() runs `bppancestor` through
+        // system(3), so it is asked only when ancestors are asked for,
+        // BppAncestors may be used, and --no-bppancestors is not given -- and
+        // then once per process (main() asks it before any work).
         BppAncestors bppa;
-        bool infer_bppa_ancestors = ( bppa.test_executable() && not Settings_handle::st.is("no-bppancestors") &&
+        bool infer_bppa_ancestors = ( not Settings_handle::st.is("no-bppancestors") &&
                                       ( do_ancestors ) &&
-                                      (int)sequences->size()<500 );
+                                      (int)sequences->size()<500 &&
+                                      bppa.test_executable() );
 
         if(infer_bppa_ancestors)
         {

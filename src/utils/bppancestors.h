@@ -41,9 +41,16 @@ class BppAncestors
     }
 
     void delete_files(int r);
+    bool probe_executable();
 
 public:
     BppAncestors();
+    // Are ancestors asked for (--events, --output-ancestors, --ancestors,
+    // --xml, --xml-nhx)? Whether BppAncestors may produce them is
+    // test_executable()'s question, and --no-bppancestors the caller's.
+    static bool ancestors_requested();
+    // Can bppancestor be run? Asked ONCE per process; a process forked after
+    // the first call inherits the answer.
     bool test_executable();
     bool infer_ancestors(Node *root,vector<Fasta_entry> *aligned_sequences,bool isCodon=false);
     void count_events(Node *root,vector<Fasta_entry> *aligned_sequences,string outfile,bool isCodon=false);
